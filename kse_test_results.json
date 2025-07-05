@@ -1,0 +1,12 @@
+{
+  "timestamp": 1751551626.3328404,
+  "test_org_id": "test-org-kse",
+  "test_user_id": "test-user-kse",
+  "service_health": {
+    "memory": false,
+    "surfacing": false,
+    "causal": false,
+    "llm": false
+  },
+  "overall_success": false
+}

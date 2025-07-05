@@ -1,0 +1,38 @@
+{
+  "module_id": "template_module",
+  "name": "Template Module",
+  "version": "1.0.0",
+  "base_url": "http://localhost:9000",
+  "health_endpoint": "/health",
+  "api_prefix": "/api/v1",
+  "features": [
+    "example_feature",
+    "memory_integration",
+    "user_context_aware"
+  ],
+  "memory_requirements": {
+    "read_access": true,
+    "write_access": true,
+    "search_types": ["hybrid", "neural", "conceptual"],
+    "memory_types": ["template_module_results", "general"]
+  },
+  "ui_components": [
+    {
+      "name": "TemplateModuleDashboard",
+      "path": "/dashboard",
+      "permissions": ["template:read"]
+    }
+  ],
+  "permissions": [
+    "template:read",
+    "template:write",
+    "memory:read",
+    "memory:write"
+  ],
+  "metadata": {
+    "description": "Template module for Lift OS Core integration",
+    "author": "Lift Team",
+    "category": "template",
+    "tags": ["template", "example", "integration"]
+  }
+}

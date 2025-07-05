@@ -1,0 +1,90 @@
+{
+  "name": "lift-eval",
+  "version": "1.0.0",
+  "description": "AI Model Evaluation and Testing Framework",
+  "author": "Lift OS Team",
+  "license": "MIT",
+  "main": "app.py",
+  "type": "service",
+  "category": "ai-tools",
+  "tags": ["evaluation", "testing", "ai", "models", "benchmarking"],
+  "dependencies": {
+    "python": ">=3.11",
+    "fastapi": ">=0.104.0",
+    "httpx": ">=0.25.0"
+  },
+  "services": {
+    "registry": "required",
+    "memory": "optional",
+    "auth": "required"
+  },
+  "permissions": [
+    "eval:create",
+    "eval:read",
+    "eval:benchmark",
+    "models:test"
+  ],
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "description": "Health check endpoint"
+    },
+    {
+      "path": "/api/v1/evaluate",
+      "method": "POST",
+      "description": "Create a new model evaluation"
+    },
+    {
+      "path": "/api/v1/benchmark",
+      "method": "POST",
+      "description": "Create a benchmark comparison"
+    },
+    {
+      "path": "/api/v1/evaluations",
+      "method": "GET",
+      "description": "List all evaluations"
+    },
+    {
+      "path": "/api/v1/benchmarks",
+      "method": "GET",
+      "description": "List all benchmarks"
+    }
+  ],
+  "ui_components": [
+    {
+      "name": "EvaluationDashboard",
+      "type": "dashboard",
+      "path": "/eval/dashboard",
+      "description": "Main evaluation dashboard"
+    },
+    {
+      "name": "BenchmarkComparison",
+      "type": "widget",
+      "path": "/eval/benchmark",
+      "description": "Model benchmark comparison widget"
+    },
+    {
+      "name": "TestCaseManager",
+      "type": "page",
+      "path": "/eval/test-cases",
+      "description": "Test case management interface"
+    }
+  ],
+  "configuration": {
+    "default_metrics": ["accuracy", "latency", "throughput"],
+    "max_test_cases": 1000,
+    "evaluation_timeout": 300,
+    "supported_models": ["gpt-4", "claude-3", "llama-2", "custom"]
+  },
+  "resources": {
+    "cpu": "1000m",
+    "memory": "2Gi",
+    "storage": "10Gi"
+  },
+  "scaling": {
+    "min_replicas": 1,
+    "max_replicas": 5,
+    "target_cpu": 70
+  }
+}

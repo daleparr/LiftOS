@@ -1,0 +1,46 @@
+{
+  "module_id": "lift_causal",
+  "name": "Lift Causal",
+  "version": "1.0.0",
+  "base_url": "http://lift-causal:9001",
+  "health_endpoint": "/health",
+  "api_prefix": "/api/v1",
+  "features": [
+    "causal_modeling",
+    "causal_analysis",
+    "causal_insights",
+    "data_visualization"
+  ],
+  "memory_requirements": {
+    "read_access": true,
+    "write_access": true,
+    "search_types": ["hybrid", "conceptual", "knowledge"],
+    "memory_types": ["causal_models", "causal_analyses", "general"]
+  },
+  "ui_components": [
+    {
+      "name": "CausalModelingDashboard",
+      "path": "/dashboard",
+      "permissions": ["causal:read"]
+    },
+    {
+      "name": "CausalAnalysisView",
+      "path": "/analysis",
+      "permissions": ["causal:read", "causal:analyze"]
+    }
+  ],
+  "permissions": [
+    "causal:read",
+    "causal:write",
+    "causal:analyze",
+    "causal:delete",
+    "memory:read",
+    "memory:write"
+  ],
+  "metadata": {
+    "description": "Advanced causal modeling and analysis capabilities",
+    "author": "Lift Team",
+    "category": "analytics",
+    "tags": ["causal", "modeling", "analysis", "statistics"]
+  }
+}

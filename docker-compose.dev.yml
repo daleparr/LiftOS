@@ -1,0 +1,268 @@
+version: '3.8'
+
+services:
+  # Development overrides for core services
+  gateway:
+    volumes:
+      - ./services/gateway:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - HOT_RELOAD=true
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+  auth:
+    volumes:
+      - ./services/auth:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - HOT_RELOAD=true
+    command: uvicorn app:app --host 0.0.0.0 --port 8001 --reload
+
+  billing:
+    volumes:
+      - ./services/billing:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - HOT_RELOAD=true
+    command: uvicorn app:app --host 0.0.0.0 --port 8002 --reload
+
+  memory:
+    volumes:
+      - ./services/memory:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - HOT_RELOAD=true
+    command: uvicorn app:app --host 0.0.0.0 --port 8003 --reload
+
+  observability:
+    volumes:
+      - ./services/observability:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - HOT_RELOAD=true
+    command: uvicorn app:app --host 0.0.0.0 --port 8004 --reload
+
+  registry:
+    volumes:
+      - ./services/registry:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - HOT_RELOAD=true
+    command: uvicorn app:app --host 0.0.0.0 --port 8005 --reload
+
+  # Frontend development
+  ui-shell:
+    volumes:
+      - ./ui-shell:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+
+  # Development modules (examples)
+  lift-causal:
+    build:
+      context: ./modules/causal
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./modules/causal:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - MEMORY_SERVICE_URL=http://memory:8003
+      - GATEWAY_URL=http://gateway:8000
+    command: uvicorn app:app --host 0.0.0.0 --port 9001 --reload
+    depends_on:
+      - gateway
+      - memory
+
+  lift-eval:
+    build:
+      context: ./modules/eval
+      dockerfile: Dockerfile
+    ports:
+      - "9002:9002"
+    volumes:
+      - ./modules/eval:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - MEMORY_SERVICE_URL=http://memory:8003
+      - GATEWAY_URL=http://gateway:8000
+    command: uvicorn app:app --host 0.0.0.0 --port 9002 --reload
+    depends_on:
+      - gateway
+      - memory
+
+  lift-agentic:
+    build:
+      context: ./modules/agentic
+      dockerfile: Dockerfile
+    ports:
+      - "9003:9003"
+    volumes:
+      - ./modules/agentic:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - MEMORY_SERVICE_URL=http://memory:8003
+      - GATEWAY_URL=http://gateway:8000
+    command: uvicorn app:app --host 0.0.0.0 --port 9003 --reload
+    depends_on:
+      - gateway
+      - memory
+
+  # Surfacing Service (Node.js) - Development
+  surfacing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.surfacing-service
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./external/surfacing:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - DEBUG=true
+    command: npm run dev
+    restart: unless-stopped
+
+  # Surfacing Module (Python wrapper) - Development
+  surfacing:
+    build:
+      context: .
+      dockerfile: modules/surfacing/Dockerfile
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./modules/surfacing:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - SURFACING_SERVICE_URL=http://surfacing-service:3002
+      - MEMORY_SERVICE_URL=http://memory:8003
+      - AUTH_SERVICE_URL=http://auth:8001
+      - REGISTRY_SERVICE_URL=http://registry:8005
+    command: uvicorn app:app --host 0.0.0.0 --port 8007 --reload
+    depends_on:
+      - surfacing-service
+      - memory
+      - auth
+    restart: unless-stopped
+
+  # Causal AI Service (Node.js/Python hybrid) - Development
+  causal-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.causal-service
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./external/causal:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - DEBUG=true
+      - PYTHON_ENV=development
+    command: npm run dev
+    restart: unless-stopped
+
+  # Causal AI Module (Python wrapper) - Development
+  causal:
+    build:
+      context: .
+      dockerfile: modules/causal/Dockerfile
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./modules/causal:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - CAUSAL_SERVICE_URL=http://causal-service:3003
+      - MEMORY_SERVICE_URL=http://memory:8003
+      - AUTH_SERVICE_URL=http://auth:8001
+      - REGISTRY_SERVICE_URL=http://registry:8005
+    command: uvicorn app:app --host 0.0.0.0 --port 8008 --reload
+    depends_on:
+      - causal-service
+      - memory
+      - auth
+    restart: unless-stopped
+
+  # LLM Service (Python FastAPI) - Development
+  llm-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.llm-service
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./external/llm:/app
+      - /app/__pycache__
+    environment:
+      - ENVIRONMENT=development
+      - PORT=3004
+      - DEBUG=true
+    command: uvicorn main:app --host 0.0.0.0 --port 3004 --reload
+    restart: unless-stopped
+
+  # LLM Module (Python wrapper) - Development
+  llm:
+    build:
+      context: .
+      dockerfile: modules/llm/Dockerfile
+    ports:
+      - "8009:8009"
+    volumes:
+      - ./modules/llm:/app
+      - /app/__pycache__
+    environment:
+      - DEBUG=true
+      - LLM_SERVICE_URL=http://llm-service:3004
+      - MEMORY_SERVICE_URL=http://memory:8003
+      - AUTH_SERVICE_URL=http://auth:8001
+      - REGISTRY_SERVICE_URL=http://registry:8005
+    command: uvicorn app:app --host 0.0.0.0 --port 8009 --reload
+    depends_on:
+      - llm-service
+      - memory
+      - auth
+    restart: unless-stopped
+
+  # Development tools
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@lift.dev
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+
+volumes:
+  pgadmin_data:

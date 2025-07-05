@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  liftos-streamlit:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: liftos-streamlit-hub
+    ports:
+      - "8501:8501"
+    environment:
+      # Application Settings
+      - DEBUG=false
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      
+      # Authentication
+      - REQUIRE_AUTH=false
+      - DEMO_MODE=true
+      - SESSION_TIMEOUT=3600
+      
+      # Microservice URLs (adjust based on your setup)
+      - CAUSAL_SERVICE_URL=http://host.docker.internal:8001
+      - SURFACING_SERVICE_URL=http://host.docker.internal:8002
+      - LLM_SERVICE_URL=http://host.docker.internal:8003
+      - MEMORY_SERVICE_URL=http://host.docker.internal:8004
+      - AUTH_SERVICE_URL=http://host.docker.internal:8005
+      - GATEWAY_SERVICE_URL=http://host.docker.internal:8000
+      
+      # API Configuration
+      - API_TIMEOUT=30
+      - CACHE_TTL=300
+      
+      # Feature Flags
+      - ENABLE_CAUSAL=true
+      - ENABLE_SURFACING=true
+      - ENABLE_LLM=true
+      - ENABLE_EXPERIMENTS=true
+      - ENABLE_MEMORY=true
+      
+      # Streamlit Configuration
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    
+    volumes:
+      - ../data:/app/data
+      - streamlit_cache:/app/.streamlit
+    
+    networks:
+      - liftos-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.liftos-streamlit.rule=Host(`liftos.local`)"
+      - "traefik.http.services.liftos-streamlit.loadbalancer.server.port=8501"
+
+volumes:
+  streamlit_cache:
+    driver: local
+
+networks:
+  liftos-network:
+    external: true
+    name: liftos-network

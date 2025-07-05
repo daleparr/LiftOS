@@ -1,0 +1,590 @@
+{
+  "timestamp": "2025-07-02T20:59:51.348494",
+  "microservices": [
+    "surfacing",
+    "causal",
+    "llm"
+  ],
+  "tests": {
+    "Availability: gateway": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T20:59:53.404739",
+      "details": {
+        "message": "Response time: 2056.22ms",
+        "response_time": 2056.222677230835,
+        "status_code": 200
+      }
+    },
+    "Availability: auth": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T20:59:55.471153",
+      "details": {
+        "message": "Response time: 2066.39ms",
+        "response_time": 2066.3909912109375,
+        "status_code": 200
+      }
+    },
+    "Availability: memory": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T20:59:57.519632",
+      "details": {
+        "message": "Response time: 2048.45ms",
+        "response_time": 2048.450231552124,
+        "status_code": 200
+      }
+    },
+    "Availability: registry": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T20:59:59.604078",
+      "details": {
+        "message": "Response time: 2084.42ms",
+        "response_time": 2084.4180583953857,
+        "status_code": 200
+      }
+    },
+    "Availability: surfacing_service": {
+      "status": "FAIL",
+      "timestamp": "2025-07-02T21:00:03.714974",
+      "details": {
+        "message": "Connection failed: HTTPConnectionPool(host='localhost', port=3002): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EA422C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    "Availability: surfacing_module": {
+      "status": "FAIL",
+      "timestamp": "2025-07-02T21:00:07.835690",
+      "details": {
+        "message": "Connection failed: HTTPConnectionPool(host='localhost', port=8007): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EA98DD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    "Availability: causal_service": {
+      "status": "FAIL",
+      "timestamp": "2025-07-02T21:00:11.962820",
+      "details": {
+        "message": "Connection failed: HTTPConnectionPool(host='localhost', port=3003): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC8270>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    "Availability: causal_module": {
+      "status": "FAIL",
+      "timestamp": "2025-07-02T21:00:16.047126",
+      "details": {
+        "message": "Connection failed: HTTPConnectionPool(host='localhost', port=8008): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC8E20>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    "Availability: llm_service": {
+      "status": "FAIL",
+      "timestamp": "2025-07-02T21:00:20.163864",
+      "details": {
+        "message": "Connection failed: HTTPConnectionPool(host='localhost', port=3004): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC9040>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    "Availability: llm_module": {
+      "status": "FAIL",
+      "timestamp": "2025-07-02T21:00:24.256635",
+      "details": {
+        "message": "Connection failed: HTTPConnectionPool(host='localhost', port=8009): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC9260>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    "Consistency: gateway": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:01:18.192653",
+      "details": {
+        "message": "Avg: 2067.69ms, StdDev: 10.29ms, Errors: 0/10",
+        "metrics": {
+          "average_ms": 2067.69,
+          "std_deviation": 10.29,
+          "min_ms": 2047.61,
+          "max_ms": 2083.65,
+          "error_rate": 0.0,
+          "consistency_score": 99.5
+        }
+      }
+    },
+    "Consistency: auth": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:01:39.898013",
+      "details": {
+        "message": "Avg: 2070.05ms, StdDev: 13.31ms, Errors: 0/10",
+        "metrics": {
+          "average_ms": 2070.05,
+          "std_deviation": 13.31,
+          "min_ms": 2048.16,
+          "max_ms": 2091.82,
+          "error_rate": 0.0,
+          "consistency_score": 99.36
+        }
+      }
+    },
+    "Consistency: memory": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:02:01.549448",
+      "details": {
+        "message": "Avg: 2064.65ms, StdDev: 7.98ms, Errors: 0/10",
+        "metrics": {
+          "average_ms": 2064.65,
+          "std_deviation": 7.98,
+          "min_ms": 2052.49,
+          "max_ms": 2077.02,
+          "error_rate": 0.0,
+          "consistency_score": 99.61
+        }
+      }
+    },
+    "Consistency: registry": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:02:23.223164",
+      "details": {
+        "message": "Avg: 2066.88ms, StdDev: 13.78ms, Errors: 0/10",
+        "metrics": {
+          "average_ms": 2066.88,
+          "std_deviation": 13.78,
+          "min_ms": 2043.64,
+          "max_ms": 2084.68,
+          "error_rate": 0.0,
+          "consistency_score": 99.33
+        }
+      }
+    },
+    "Config Integrity: surfacing": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:02:23.225929",
+      "details": {
+        "message": "Endpoints: 6, Capabilities: 11",
+        "missing_fields": []
+      }
+    },
+    "Config Integrity: causal": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:02:23.227148",
+      "details": {
+        "message": "Endpoints: 8, Capabilities: 10",
+        "missing_fields": []
+      }
+    },
+    "Config Integrity: llm": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:02:23.228288",
+      "details": {
+        "message": "Endpoints: 14, Capabilities: 12",
+        "missing_fields": []
+      }
+    },
+    "Dependency Chain: surfacing": {
+      "status": "WARN",
+      "timestamp": "2025-07-02T21:02:37.626838",
+      "details": {
+        "message": "3/5 services healthy (60.0%)",
+        "health_percentage": 60.0
+      }
+    },
+    "Dependency Chain: causal": {
+      "status": "WARN",
+      "timestamp": "2025-07-02T21:02:52.046500",
+      "details": {
+        "message": "3/5 services healthy (60.0%)",
+        "health_percentage": 60.0
+      }
+    },
+    "Dependency Chain: llm": {
+      "status": "WARN",
+      "timestamp": "2025-07-02T21:03:06.459420",
+      "details": {
+        "message": "3/5 services healthy (60.0%)",
+        "health_percentage": 60.0
+      }
+    },
+    "Error Handling: gateway": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:03:44.829194",
+      "details": {
+        "message": "Robustness: 100.0% (3/3)",
+        "robustness_percentage": 100.0
+      }
+    },
+    "Error Handling: auth": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:03:51.015179",
+      "details": {
+        "message": "Robustness: 100.0% (3/3)",
+        "robustness_percentage": 100.0
+      }
+    },
+    "Error Handling: memory": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:03:57.221361",
+      "details": {
+        "message": "Robustness: 100.0% (3/3)",
+        "robustness_percentage": 100.0
+      }
+    },
+    "Error Handling: registry": {
+      "status": "PASS",
+      "timestamp": "2025-07-02T21:04:03.433855",
+      "details": {
+        "message": "Robustness: 100.0% (3/3)",
+        "robustness_percentage": 100.0
+      }
+    }
+  },
+  "summary": {
+    "overall_stability_score": 62.5,
+    "total_tests": 24,
+    "passed_tests": 15,
+    "warned_tests": 3,
+    "failed_tests": 6,
+    "test_categories": {
+      "availability": {
+        "core": {
+          "gateway": {
+            "available": true,
+            "response_time_ms": 2056.22,
+            "status_code": 200
+          },
+          "auth": {
+            "available": true,
+            "response_time_ms": 2066.39,
+            "status_code": 200
+          },
+          "memory": {
+            "available": true,
+            "response_time_ms": 2048.45,
+            "status_code": 200
+          },
+          "registry": {
+            "available": true,
+            "response_time_ms": 2084.42,
+            "status_code": 200
+          }
+        },
+        "microservices": {
+          "surfacing_service": {
+            "available": false,
+            "error": "HTTPConnectionPool(host='localhost', port=3002): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EA422C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+          },
+          "surfacing_module": {
+            "available": false,
+            "error": "HTTPConnectionPool(host='localhost', port=8007): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EA98DD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+          },
+          "causal_service": {
+            "available": false,
+            "error": "HTTPConnectionPool(host='localhost', port=3003): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC8270>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+          },
+          "causal_module": {
+            "available": false,
+            "error": "HTTPConnectionPool(host='localhost', port=8008): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC8E20>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+          },
+          "llm_service": {
+            "available": false,
+            "error": "HTTPConnectionPool(host='localhost', port=3004): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC9040>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+          },
+          "llm_module": {
+            "available": false,
+            "error": "HTTPConnectionPool(host='localhost', port=8009): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC9260>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+          }
+        }
+      },
+      "consistency": {
+        "gateway": {
+          "average_ms": 2067.69,
+          "std_deviation": 10.29,
+          "min_ms": 2047.61,
+          "max_ms": 2083.65,
+          "error_rate": 0.0,
+          "consistency_score": 99.5
+        },
+        "auth": {
+          "average_ms": 2070.05,
+          "std_deviation": 13.31,
+          "min_ms": 2048.16,
+          "max_ms": 2091.82,
+          "error_rate": 0.0,
+          "consistency_score": 99.36
+        },
+        "memory": {
+          "average_ms": 2064.65,
+          "std_deviation": 7.98,
+          "min_ms": 2052.49,
+          "max_ms": 2077.02,
+          "error_rate": 0.0,
+          "consistency_score": 99.61
+        },
+        "registry": {
+          "average_ms": 2066.88,
+          "std_deviation": 13.78,
+          "min_ms": 2043.64,
+          "max_ms": 2084.68,
+          "error_rate": 0.0,
+          "consistency_score": 99.33
+        }
+      },
+      "configuration": {
+        "surfacing": {
+          "valid": true,
+          "missing_fields": [],
+          "endpoint_count": 6,
+          "capability_count": 11,
+          "has_health_check": false,
+          "has_resource_requirements": false
+        },
+        "causal": {
+          "valid": true,
+          "missing_fields": [],
+          "endpoint_count": 8,
+          "capability_count": 10,
+          "has_health_check": true,
+          "has_resource_requirements": true
+        },
+        "llm": {
+          "valid": true,
+          "missing_fields": [],
+          "endpoint_count": 14,
+          "capability_count": 12,
+          "has_health_check": true,
+          "has_resource_requirements": true
+        }
+      },
+      "dependencies": {
+        "surfacing": {
+          "chain_health": [
+            {
+              "service": "auth",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "memory",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "registry",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "surfacing-service",
+              "healthy": false,
+              "error": "HTTPConnectionPool(host='localhost', port=3002): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC88D0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+            },
+            {
+              "service": "surfacing-module",
+              "healthy": false,
+              "error": "HTTPConnectionPool(host='localhost', port=8007): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC9040>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+            }
+          ],
+          "healthy_services": 3,
+          "total_services": 5,
+          "health_percentage": 60.0,
+          "fully_operational": false
+        },
+        "causal": {
+          "chain_health": [
+            {
+              "service": "auth",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "memory",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "registry",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "causal-service",
+              "healthy": false,
+              "error": "HTTPConnectionPool(host='localhost', port=3003): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC85A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+            },
+            {
+              "service": "causal-module",
+              "healthy": false,
+              "error": "HTTPConnectionPool(host='localhost', port=8008): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC8050>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+            }
+          ],
+          "healthy_services": 3,
+          "total_services": 5,
+          "health_percentage": 60.0,
+          "fully_operational": false
+        },
+        "llm": {
+          "chain_health": [
+            {
+              "service": "auth",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "memory",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "registry",
+              "healthy": true,
+              "status_code": 200
+            },
+            {
+              "service": "llm-service",
+              "healthy": false,
+              "error": "HTTPConnectionPool(host='localhost', port=3004): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC87C0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+            },
+            {
+              "service": "llm-module",
+              "healthy": false,
+              "error": "HTTPConnectionPool(host='localhost', port=8009): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002843EAC96A0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+            }
+          ],
+          "healthy_services": 3,
+          "total_services": 5,
+          "health_percentage": 60.0,
+          "fully_operational": false
+        }
+      },
+      "error_handling": {
+        "gateway": {
+          "tests": [
+            {
+              "endpoint": "/invalid",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/health/../admin",
+              "status_code": 404,
+              "expected": [
+                400,
+                404,
+                403
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/api/v1/nonexistent",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            }
+          ],
+          "score": 3,
+          "robustness_percentage": 100.0
+        },
+        "auth": {
+          "tests": [
+            {
+              "endpoint": "/invalid",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/health/../admin",
+              "status_code": 404,
+              "expected": [
+                400,
+                404,
+                403
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/api/v1/nonexistent",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            }
+          ],
+          "score": 3,
+          "robustness_percentage": 100.0
+        },
+        "memory": {
+          "tests": [
+            {
+              "endpoint": "/invalid",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/health/../admin",
+              "status_code": 404,
+              "expected": [
+                400,
+                404,
+                403
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/api/v1/nonexistent",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            }
+          ],
+          "score": 3,
+          "robustness_percentage": 100.0
+        },
+        "registry": {
+          "tests": [
+            {
+              "endpoint": "/invalid",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/health/../admin",
+              "status_code": 404,
+              "expected": [
+                400,
+                404,
+                403
+              ],
+              "passed": true
+            },
+            {
+              "endpoint": "/api/v1/nonexistent",
+              "status_code": 404,
+              "expected": [
+                404,
+                405
+              ],
+              "passed": true
+            }
+          ],
+          "score": 3,
+          "robustness_percentage": 100.0
+        }
+      }
+    },
+    "recommendations": [
+      "Deploy missing microservices using setup scripts",
+      "Verify Docker containers are running and healthy"
+    ]
+  }
+}

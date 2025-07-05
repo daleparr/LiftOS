@@ -1,0 +1,105 @@
+{
+  "module_id": "surfacing",
+  "name": "Surfacing Module",
+  "version": "1.0.0",
+  "base_url": "http://localhost:9005",
+  "health_endpoint": "/health",
+  "api_prefix": "/api/v1",
+  "capabilities": [
+    "text_analysis",
+    "sentiment_analysis",
+    "entity_recognition",
+    "content_categorization",
+    "batch_processing",
+    "multilingual_support",
+    "product_analysis",
+    "optimization",
+    "memory_integration",
+    "hybrid_analysis",
+    "knowledge_graph"
+  ],
+  "endpoints": {
+    "analyze": "/api/v1/analyze",
+    "sentiment": "/api/v1/sentiment",
+    "entities": "/api/v1/entities",
+    "batch": "/api/v1/batch",
+    "optimize": "/api/v1/optimize",
+    "health": "/health"
+  },
+  "features": [
+    "product_analysis",
+    "batch_analysis",
+    "optimization",
+    "memory_integration",
+    "hybrid_analysis",
+    "knowledge_graph"
+  ],
+  "memory_requirements": {
+    "read_access": true,
+    "write_access": true,
+    "search_types": ["hybrid", "neural", "conceptual"],
+    "memory_types": [
+      "surfacing_analysis",
+      "surfacing_batch_analysis", 
+      "surfacing_optimization",
+      "general"
+    ]
+  },
+  "ui_components": [
+    {
+      "name": "SurfacingDashboard",
+      "path": "/dashboard",
+      "permissions": ["surfacing:read"]
+    },
+    {
+      "name": "ProductAnalyzer",
+      "path": "/analyze",
+      "permissions": ["surfacing:analyze"]
+    },
+    {
+      "name": "BatchProcessor",
+      "path": "/batch",
+      "permissions": ["surfacing:batch"]
+    },
+    {
+      "name": "ProductOptimizer",
+      "path": "/optimize",
+      "permissions": ["surfacing:optimize"]
+    }
+  ],
+  "permissions": [
+    "surfacing:read",
+    "surfacing:analyze",
+    "surfacing:batch",
+    "surfacing:optimize",
+    "memory:read",
+    "memory:write"
+  ],
+  "dependencies": {
+    "memory_service": ">=1.0.0",
+    "auth_service": ">=1.0.0",
+    "surfacing_service": ">=1.0.0",
+    "services": [
+      "memory",
+      "surfacing-service"
+    ],
+    "external_apis": [
+      "surfacing-service"
+    ]
+  },
+  "configuration": {
+    "surfacing_service_url": "http://surfacing-service:3000",
+    "default_analysis_type": "comprehensive",
+    "default_optimization_level": "standard",
+    "batch_size_limit": 100,
+    "timeout_seconds": 60
+  },
+  "metadata": {
+    "description": "Product analysis and surfacing capabilities with hybrid AI analysis and knowledge graph integration",
+    "author": "Lift Team",
+    "category": "analysis",
+    "tags": ["surfacing", "product-analysis", "optimization", "ai", "knowledge-graph"],
+    "documentation_url": "/docs",
+    "support_contact": "support@lift.co"
+  }
+}

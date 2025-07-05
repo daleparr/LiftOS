@@ -1,0 +1,1 @@
+# Shared data models for Lift OS Core

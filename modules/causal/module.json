@@ -1,0 +1,112 @@
+{
+  "name": "causal",
+  "version": "1.0.0",
+  "description": "Advanced Marketing Attribution and Causal Inference Platform",
+  "author": "LiftOS Team",
+  "license": "MIT",
+  "type": "analysis",
+  "capabilities": [
+    "marketing_attribution",
+    "causal_inference",
+    "marketing_mix_modeling",
+    "roi_analysis",
+    "budget_optimization",
+    "lift_measurement",
+    "bayesian_modeling",
+    "holdout_validation",
+    "channel_attribution",
+    "platform_integration"
+  ],
+  "permissions": [
+    "memory:read",
+    "memory:write",
+    "user:context",
+    "billing:usage",
+    "observability:metrics"
+  ],
+  "dependencies": {
+    "memory_service": ">=1.0.0",
+    "auth_service": ">=1.0.0"
+  },
+  "endpoints": {
+    "analyze_attribution": "/api/v1/attribution/analyze",
+    "create_model": "/api/v1/models/create",
+    "run_experiment": "/api/v1/experiments/run",
+    "optimize_budget": "/api/v1/optimization/budget",
+    "measure_lift": "/api/v1/lift/measure",
+    "validate_model": "/api/v1/models/validate",
+    "get_insights": "/api/v1/insights",
+    "sync_platforms": "/api/v1/platforms/sync"
+  },
+  "ui_components": [
+    {
+      "name": "Attribution Dashboard",
+      "path": "/dashboard/attribution",
+      "description": "Marketing attribution analysis and visualization"
+    },
+    {
+      "name": "Model Builder",
+      "path": "/models/builder",
+      "description": "Create and configure attribution models"
+    },
+    {
+      "name": "Experiment Designer",
+      "path": "/experiments/designer",
+      "description": "Design and run causal inference experiments"
+    },
+    {
+      "name": "Budget Optimizer",
+      "path": "/optimization/budget",
+      "description": "Optimize marketing budget allocation"
+    }
+  ],
+  "integrations": [
+    {
+      "platform": "Google Ads",
+      "type": "advertising",
+      "endpoints": ["campaigns", "conversions", "attribution"]
+    },
+    {
+      "platform": "Meta",
+      "type": "advertising", 
+      "endpoints": ["campaigns", "conversions", "attribution"]
+    },
+    {
+      "platform": "Klaviyo",
+      "type": "email_marketing",
+      "endpoints": ["campaigns", "metrics", "attribution"]
+    },
+    {
+      "platform": "TikTok",
+      "type": "advertising",
+      "endpoints": ["campaigns", "conversions", "attribution"]
+    }
+  ],
+  "configuration": {
+    "default_attribution_window": 30,
+    "max_attribution_window": 365,
+    "supported_models": [
+      "instrumental_variables",
+      "difference_in_differences", 
+      "randomized_controlled_trial",
+      "bayesian_structural",
+      "marketing_mix_model"
+    ],
+    "validation_methods": [
+      "holdout_validation",
+      "cross_validation",
+      "bootstrap_validation"
+    ]
+  },
+  "resource_requirements": {
+    "memory": "2Gi",
+    "cpu": "1000m",
+    "storage": "10Gi"
+  },
+  "health_check": {
+    "endpoint": "/health",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "id": "llm",
+  "name": "LLM Evaluation and Generation Platform",
+  "version": "1.0.0",
+  "description": "Advanced LLM evaluation, prompt engineering, and content generation with multi-provider support",
+  "author": "LiftOS Team",
+  "license": "MIT",
+  "category": "ai_generation",
+  "capabilities": [
+    "model_evaluation",
+    "prompt_engineering",
+    "content_generation",
+    "performance_benchmarking",
+    "multilingual_support",
+    "provider_integration",
+    "template_management",
+    "rlhf_scoring",
+    "leaderboard_engine",
+    "metric_calculation",
+    "fine_tuning_support",
+    "context_length_testing"
+  ],
+  "permissions": [
+    "memory:read",
+    "memory:write",
+    "user:context",
+    "billing:usage",
+    "observability:metrics",
+    "llm:generate",
+    "llm:evaluate",
+    "llm:templates"
+  ],
+  "dependencies": {
+    "memory_service": ">=1.0.0",
+    "auth_service": ">=1.0.0",
+    "llm_service": ">=1.0.0"
+  },
+  "endpoints": {
+    "evaluate_models": "/api/v1/models/evaluate",
+    "model_leaderboard": "/api/v1/models/leaderboard",
+    "compare_models": "/api/v1/models/compare",
+    "generate_content": "/api/v1/prompts/generate",
+    "list_templates": "/api/v1/prompts/templates",
+    "optimize_prompts": "/api/v1/prompts/optimize",
+    "calculate_metrics": "/api/v1/evaluation/metrics",
+    "rlhf_scoring": "/api/v1/evaluation/rlhf",
+    "multilingual_test": "/api/v1/evaluation/multilingual",
+    "openai_integration": "/api/v1/providers/openai",
+    "cohere_integration": "/api/v1/providers/cohere",
+    "huggingface_integration": "/api/v1/providers/huggingface",
+    "batch_evaluate": "/api/v1/batch/evaluate",
+    "fine_tune_model": "/api/v1/models/fine-tune"
+  },
+  "ui_components": [
+    {
+      "name": "Model Leaderboard",
+      "path": "/dashboard/leaderboard",
+      "description": "Compare and rank LLM model performance"
+    },
+    {
+      "name": "Prompt Studio",
+      "path": "/prompts/studio",
+      "description": "Design and test prompt templates"
+    },
+    {
+      "name": "Content Generator",
+      "path": "/generate/content",
+      "description": "Generate marketing content using LLMs"
+    },
+    {
+      "name": "Evaluation Dashboard",
+      "path": "/evaluation/dashboard",
+      "description": "Monitor model performance metrics"
+    },
+    {
+      "name": "Template Manager",
+      "path": "/templates/manager",
+      "description": "Manage prompt templates for different use cases"
+    }
+  ],
+  "integrations": [
+    {
+      "provider": "OpenAI",
+      "type": "llm_api",
+      "models": ["gpt-4", "gpt-3.5-turbo", "text-davinci-003"],
+      "endpoints": ["completions", "chat", "embeddings"]
+    },
+    {
+      "provider": "Cohere",
+      "type": "llm_api", 
+      "models": ["command", "command-light", "command-nightly"],
+      "endpoints": ["generate", "classify", "embed"]
+    },
+    {
+      "provider": "HuggingFace",
+      "type": "llm_api",
+      "models": ["transformers", "inference-api", "custom-models"],
+      "endpoints": ["inference", "pipeline", "tokenizer"]
+    }
+  ],
+  "prompt_templates": [
+    {
+      "name": "ad_copy",
+      "description": "Generate compelling advertising copy",
+      "use_cases": ["google_ads", "facebook_ads", "display_ads"]
+    },
+    {
+      "name": "seo_content",
+      "description": "Create SEO-optimized content",
+      "use_cases": ["blog_posts", "meta_descriptions", "page_content"]
+    },
+    {
+      "name": "email_marketing",
+      "description": "Generate email marketing content",
+      "use_cases": ["newsletters", "promotional_emails", "drip_campaigns"]
+    },
+    {
+      "name": "chatbot_responses",
+      "description": "Create natural chatbot responses",
+      "use_cases": ["customer_support", "sales_assistant", "faq_bot"]
+    }
+  ],
+  "evaluation_metrics": [
+    {
+      "name": "BLEU",
+      "description": "Bilingual Evaluation Understudy score",
+      "type": "translation_quality"
+    },
+    {
+      "name": "ROUGE",
+      "description": "Recall-Oriented Understudy for Gisting Evaluation",
+      "type": "summarization_quality"
+    },
+    {
+      "name": "BERTScore",
+      "description": "BERT-based semantic similarity score",
+      "type": "semantic_similarity"
+    },
+    {
+      "name": "RLHF",
+      "description": "Reinforcement Learning from Human Feedback",
+      "type": "human_preference"
+    }
+  ],
+  "configuration": {
+    "llm_service_url": "http://llm-service:3004",
+    "default_model": "gpt-3.5-turbo",
+    "max_tokens": 4096,
+    "temperature": 0.7,
+    "evaluation_batch_size": 10,
+    "cache_ttl": 3600,
+    "supported_languages": [
+      "en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko"
+    ],
+    "context_length_limits": {
+      "gpt-4": 8192,
+      "gpt-3.5-turbo": 4096,
+      "command": 4096,
+      "transformers": 2048
+    }
+  },
+  "resource_requirements": {
+    "memory": "4Gi",
+    "cpu": "2000m",
+    "storage": "20Gi",
+    "gpu": "optional"
+  },
+  "health_check": {
+    "endpoint": "/health",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3
+  },
+  "metadata": {
+    "description": "Comprehensive LLM evaluation and content generation platform with multi-provider support",
+    "documentation_url": "/docs/llm",
+    "support_contact": "support@liftos.com",
+    "tags": ["llm", "ai", "content-generation", "evaluation", "prompt-engineering"]
+  }
+}

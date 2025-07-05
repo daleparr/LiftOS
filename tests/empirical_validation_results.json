@@ -1,0 +1,53 @@
+{
+  "confounder_detection": {
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "detected_confounders": [
+      "budget_change"
+    ],
+    "meets_precision_target": true,
+    "meets_recall_target": false
+  },
+  "causal_estimation": {
+    "mean_bias": 0.05034048192705681,
+    "max_bias": 0.08905576326480388,
+    "bias_results": [
+      0.008489640177989782,
+      0.05347604233837677,
+      0.08905576326480388
+    ],
+    "meets_mean_bias_target": "True",
+    "meets_max_bias_target": "True"
+  },
+  "processing_speed": {
+    "records_per_second": 30650.93064213211,
+    "processing_time": 0.032625436782836914,
+    "records_processed": 1000,
+    "meets_speed_target": true
+  },
+  "statistical_confidence": {
+    "mean_estimate": 0.24848403341530798,
+    "confidence_interval": [
+      0.24848403341530792,
+      0.24848403341530803
+    ],
+    "coverage": "False",
+    "bias": 0.006063866338768098,
+    "meets_coverage_target": "False",
+    "meets_bias_target": "True"
+  },
+  "attribution_improvement": {
+    "true_effect": 0.2,
+    "baseline_error": 0.41829435326445485,
+    "improved_error": 0.11811965901792357,
+    "improvement": 0.7176159369685641,
+    "meets_improvement_target": "True"
+  },
+  "summary": {
+    "total_tests": 3,
+    "passed_tests": 2,
+    "success_rate": 0.6666666666666666,
+    "validation_status": "NEEDS_IMPROVEMENT",
+    "timestamp": "2025-07-05T10:01:21.444004"
+  }
+}

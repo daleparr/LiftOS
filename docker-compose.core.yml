@@ -1,0 +1,163 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lift-postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-lift_os_prod}
+      POSTGRES_USER: ${DATABASE_USER:-lift_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-lift_user} -d ${DATABASE_NAME:-lift_os_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - lift-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: lift-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-secure_redis_password}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - lift-network
+
+  # Registry Service
+  registry:
+    image: lift/registry-service:latest
+    container_name: lift-registry
+    ports:
+      - "8005:8005"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=postgresql+asyncpg://lift_user:secure_password@postgres:5432/lift_os_prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - lift-network
+
+  # Authentication Service
+  auth:
+    image: lift/auth-service:latest
+    container_name: lift-auth
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=postgresql+asyncpg://lift_user:secure_password@postgres:5432/lift_os_prod
+      - REDIS_URL=redis://:secure_redis_password@redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - lift-network
+
+  # Memory Service (KSE Integration)
+  memory:
+    image: lift/memory-service:latest
+    container_name: lift-memory
+    ports:
+      - "8003:8003"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=postgresql+asyncpg://lift_user:secure_password@postgres:5432/lift_os_prod
+      - REDIS_URL=redis://:secure_redis_password@redis:6379/0
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX_HOST=https://liftos-core-9td1bq3.svc.aped-4627-b74a.pinecone.io
+      - PINECONE_INDEX_NAME=liftos-core
+      - PINECONE_REGION=us-east-1
+      - PINECONE_DIMENSION=1536
+      - LLM_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=openai
+      - LLM_MODEL=text-embedding-ada-002
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - lift-network
+
+  # API Gateway
+  gateway:
+    image: lift/gateway-service:latest
+    container_name: lift-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - AUTH_SERVICE_URL=http://auth:8001
+      - REGISTRY_SERVICE_URL=http://registry:8005
+      - MEMORY_SERVICE_URL=http://memory:8003
+    depends_on:
+      auth:
+        condition: service_healthy
+      registry:
+        condition: service_healthy
+      memory:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - lift-network
+
+networks:
+  lift-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

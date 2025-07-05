@@ -1,0 +1,7 @@
+FROM lift/memory-service:latest
+
+# Copy the fixed KSE SDK client
+COPY shared/kse_sdk/client.py /app/shared/kse_sdk/client.py
+
+# Restart the service
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8003"]

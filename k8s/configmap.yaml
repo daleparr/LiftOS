@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lift-os-config
+  namespace: lift-os
+data:
+  # Database Configuration
+  POSTGRES_DB: "lift_os_prod"
+  DATABASE_HOST: "postgres"
+  DATABASE_PORT: "5432"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  
+  # Service Configuration
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  METRICS_ENABLED: "true"
+  
+  # Rate Limiting
+  RATE_LIMIT_REQUESTS: "1000"
+  RATE_LIMIT_WINDOW: "60"
+  
+  # Cache Configuration
+  CACHE_TTL: "3600"
+  SESSION_TTL: "86400"
+  
+  # Feature Flags
+  ENABLE_REGISTRATION: "true"
+  ENABLE_OAUTH: "true"
+  ENABLE_BILLING: "true"
+  ENABLE_ANALYTICS: "true"
+  ENABLE_DEBUG_MODE: "false"
+  
+  # Module Configuration
+  MAX_MODULES_PER_USER: "10"
+  MODULE_TIMEOUT: "300"
+  MODULE_MEMORY_LIMIT: "512M"
+  
+  # Health Check Configuration
+  HEALTH_CHECK_INTERVAL: "30s"
+  HEALTH_CHECK_TIMEOUT: "10s"
+  HEALTH_CHECK_RETRIES: "3"
+  
+  # KSE Configuration
+  KSE_ENVIRONMENT: "production"
+  KSE_DEFAULT_DOMAIN: "general"
+  KSE_MAX_CONTEXTS: "1000"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: lift-os
+data:
+  nginx.conf: |
+    upstream gateway {
+        server gateway:8000;
+    }
+    
+    upstream ui-shell {
+        server ui-shell:3000;
+    }
+    
+    server {
+        listen 80;
+        server_name _;
+        
+        # Security headers
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+        add_header Referrer-Policy "strict-origin-when-cross-origin";
+        
+        # API routes
+        location /api/ {
+            proxy_pass http://gateway;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # CORS headers
+            add_header Access-Control-Allow-Origin *;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization, Content-Type";
+            
+            if ($request_method = 'OPTIONS') {
+                return 204;
+            }
+        }
+        
+        # Health check
+        location /health {
+            proxy_pass http://gateway/health;
+        }
+        
+        # UI routes
+        location / {
+            proxy_pass http://ui-shell;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: lift-os
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    rule_files:
+      - "alert_rules.yml"
+    
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+    
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+      
+      - job_name: 'lift-os-gateway'
+        static_configs:
+          - targets: ['gateway:8000']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+      
+      - job_name: 'lift-os-auth'
+        static_configs:
+          - targets: ['auth:8001']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+      
+      - job_name: 'lift-os-memory'
+        static_configs:
+          - targets: ['memory:8002']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+      
+      - job_name: 'lift-os-registry'
+        static_configs:
+          - targets: ['registry:8003']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+      
+      - job_name: 'lift-os-billing'
+        static_configs:
+          - targets: ['billing:8004']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+      
+      - job_name: 'lift-os-observability'
+        static_configs:
+          - targets: ['observability:8005']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+      
+      - job_name: 'postgres-exporter'
+        static_configs:
+          - targets: ['postgres-exporter:9187']
+      
+      - job_name: 'redis-exporter'
+        static_configs:
+          - targets: ['redis-exporter:9121']
+      
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['node-exporter:9100']
