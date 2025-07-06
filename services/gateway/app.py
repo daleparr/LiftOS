@@ -57,6 +57,13 @@ app = FastAPI(
         {"name": "memory", "description": "Memory service proxy"},
         {"name": "registry", "description": "Registry service proxy"},
         {"name": "observability", "description": "Observability service proxy"},
+        {"name": "intelligence", "description": "Intelligence service proxy"},
+        {"name": "feedback", "description": "Feedback service proxy"},
+        {"name": "business-metrics", "description": "Business metrics and KPI tracking"},
+        {"name": "user-analytics", "description": "User behavior and analytics"},
+        {"name": "impact-monitoring", "description": "Decision impact monitoring"},
+        {"name": "strategic-intelligence", "description": "Strategic intelligence and market analysis"},
+        {"name": "business-intelligence", "description": "Business intelligence dashboards and reporting"},
         {"name": "modules", "description": "Dynamic module proxy"},
     ]
 )
@@ -84,6 +91,14 @@ SERVICE_URLS = {
     "memory": config.MEMORY_SERVICE_URL,
     "observability": config.OBSERVABILITY_SERVICE_URL,
     "registry": config.REGISTRY_SERVICE_URL,
+    "intelligence": os.getenv("INTELLIGENCE_SERVICE_URL", "http://localhost:8009"),
+    "feedback": os.getenv("FEEDBACK_SERVICE_URL", "http://localhost:8010"),
+    # Phase 4: Business Observability Services
+    "business-metrics": os.getenv("BUSINESS_METRICS_SERVICE_URL", "http://localhost:8012"),
+    "user-analytics": os.getenv("USER_ANALYTICS_SERVICE_URL", "http://localhost:8013"),
+    "impact-monitoring": os.getenv("IMPACT_MONITORING_SERVICE_URL", "http://localhost:8014"),
+    "strategic-intelligence": os.getenv("STRATEGIC_INTELLIGENCE_SERVICE_URL", "http://localhost:8015"),
+    "business-intelligence": os.getenv("BUSINESS_INTELLIGENCE_SERVICE_URL", "http://localhost:8016"),
 }
 
 # HTTP client for service communication

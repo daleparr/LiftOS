@@ -1,0 +1,7 @@
+{
+  "environment": "local",
+  "api_base_url": "http://localhost:8000",
+  "frontend_url": "http://localhost:8501",
+  "debug": true,
+  "mock_data": true
+}

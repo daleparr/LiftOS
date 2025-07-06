@@ -1,0 +1,140 @@
+{
+  "module_id": "agentic",
+  "name": "Agentic Testing & Evaluation",
+  "version": "1.0.0",
+  "base_url": "http://localhost:9004",
+  "health_endpoint": "/health",
+  "api_prefix": "/api/v1",
+  "features": [
+    "agent_evaluation",
+    "performance_analysis",
+    "marketing_agent_testing",
+    "deployment_readiness",
+    "test_orchestration",
+    "ai_powered_insights"
+  ],
+  "memory_requirements": {
+    "read_access": true,
+    "write_access": true,
+    "search_types": ["hybrid", "neural", "conceptual"],
+    "memory_types": [
+      "agent_evaluations",
+      "test_results", 
+      "performance_metrics",
+      "marketing_scenarios",
+      "agent_configurations"
+    ]
+  },
+  "ui_components": [
+    {
+      "name": "Agent Evaluation Dashboard",
+      "path": "/dashboard/evaluation",
+      "permissions": ["agentic:read"],
+      "description": "Comprehensive agent evaluation and performance analysis"
+    },
+    {
+      "name": "Marketing Agent Library",
+      "path": "/agents/library",
+      "permissions": ["agentic:read"],
+      "description": "Pre-built marketing agents for common use cases"
+    },
+    {
+      "name": "Test Orchestrator",
+      "path": "/testing/orchestrator",
+      "permissions": ["agentic:write"],
+      "description": "Create and manage agent test scenarios"
+    },
+    {
+      "name": "Performance Analytics",
+      "path": "/analytics/performance",
+      "permissions": ["agentic:read"],
+      "description": "Agent performance metrics and optimization insights"
+    }
+  ],
+  "permissions": [
+    "agentic:read",
+    "agentic:write",
+    "agentic:evaluate",
+    "agentic:deploy",
+    "memory:read",
+    "memory:write",
+    "llm:integrate",
+    "causal:integrate"
+  ],
+  "capabilities": [
+    "agent_evaluation",
+    "marketing_agent_testing",
+    "performance_benchmarking",
+    "deployment_readiness_assessment",
+    "ai_powered_analysis",
+    "test_scenario_orchestration",
+    "attribution_agent_validation",
+    "campaign_optimization_testing",
+    "roi_calculation_verification",
+    "customer_segmentation_evaluation"
+  ],
+  "integrations": [
+    {
+      "service": "causal",
+      "type": "module",
+      "endpoints": ["attribution", "models", "experiments"]
+    },
+    {
+      "service": "llm", 
+      "type": "module",
+      "endpoints": ["chat", "completion", "embeddings"]
+    },
+    {
+      "service": "memory",
+      "type": "core_service",
+      "endpoints": ["store", "search", "retrieve"]
+    },
+    {
+      "service": "auth",
+      "type": "core_service", 
+      "endpoints": ["validate", "permissions"]
+    }
+  ],
+  "configuration": {
+    "default_evaluation_timeout": 300,
+    "max_concurrent_tests": 10,
+    "supported_agent_types": [
+      "attribution_analysis",
+      "campaign_optimization", 
+      "roi_calculation",
+      "customer_segmentation",
+      "marketing_automation"
+    ],
+    "evaluation_categories": [
+      "functionality",
+      "reliability", 
+      "performance",
+      "security",
+      "usability"
+    ],
+    "deployment_thresholds": {
+      "functionality": 80,
+      "reliability": 90,
+      "performance": 75,
+      "security": 85,
+      "usability": 70
+    }
+  },
+  "resource_requirements": {
+    "memory": "1Gi",
+    "cpu": "500m", 
+    "storage": "5Gi"
+  },
+  "health_check": {
+    "endpoint": "/health",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3
+  },
+  "metadata": {
+    "description": "AI-powered agent testing and evaluation platform for marketing analytics",
+    "author": "LiftOS Team",
+    "category": "testing",
+    "tags": ["ai", "testing", "evaluation", "marketing", "agents", "performance"]
+  }
+}

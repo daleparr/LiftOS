@@ -209,7 +209,7 @@ class AttributionModel(TimestampMixin):
     
     # Model Configuration
     causal_method: CausalMethod = Field(..., description="Causal inference method")
-    model_config: Dict[str, Any] = Field(..., description="Model configuration")
+    model_configuration: Dict[str, Any] = Field(..., description="Model configuration")
     feature_config: Dict[str, Any] = Field(..., description="Feature engineering config")
     
     # Training Data

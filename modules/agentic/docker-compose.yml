@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  agentic:
+    build: .
+    container_name: liftos-agentic
+    ports:
+      - "8007:8000"
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - MEMORY_SERVICE_URL=http://memory:8000
+      - AUTH_SERVICE_URL=http://auth:8000
+      - OBSERVABILITY_SERVICE_URL=http://observability:8000
+      - LLM_SERVICE_URL=http://llm:8000
+      - CAUSAL_SERVICE_URL=http://causal:8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./agentic.db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    volumes:
+      - agentic_data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - liftos-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: liftos-agentic-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - liftos-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: liftos-agentic-postgres
+    environment:
+      - POSTGRES_DB=agentic
+      - POSTGRES_USER=agentic
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-agentic_password}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - liftos-network
+    restart: unless-stopped
+
+volumes:
+  agentic_data:
+    driver: local
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  liftos-network:
+    external: true

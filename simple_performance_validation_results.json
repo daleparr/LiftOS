@@ -1,0 +1,6 @@
+{
+  "execution_time": {
+    "error": "'charmap' codec can't encode character '\\u2265' in position 30: character maps to <undefined>"
+  },
+  "speedup": "PerformanceClaimResult(claim_name='241x speedup vs legacy MMM', target_value=241.0, measured_value=np.float64(13.805793173748237), meets_target=np.False_, confidence_interval=(np.float64(7.612391272388742), np.float64(18.65433602156221)), test_conditions={'data_volumes': [100, 500, 1000], 'speedup_ratios': [18.82624948082514, 15.387980295566502, 7.203149744853071], 'mean_speedup': np.float64(13.805793173748237)})"
+}
