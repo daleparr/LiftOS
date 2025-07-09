@@ -1,6 +1,6 @@
 # LiftOS
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/daleparr/LiftOS) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/version-1.4.0-blue)](https://github.com/daleparr/LiftOS/releases) [![Deployment](https://img.shields.io/badge/deployment-12.3s-green)](http://localhost:8501) [![Performance](https://img.shields.io/badge/speedup-241x-orange)](https://github.com/daleparr/LiftOS)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/daleparr/LiftOS) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/daleparr/LiftOS/releases) [![Deployment](https://img.shields.io/badge/deployment-12.3s-green)](http://localhost:8501) [![Performance](https://img.shields.io/badge/speedup-241x-orange)](https://github.com/daleparr/LiftOS)
 
 > **The Operating System for Causal Growth** - End attribution theatre. Start proving what actually works.
 
