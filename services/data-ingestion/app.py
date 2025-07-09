@@ -1,6 +1,6 @@
 """
 LiftOS Data Ingestion Service
-Phase 2: API Connectors for Meta Business, Google Ads, and Klaviyo
+Phase 4: API Connectors for 17 platforms across 4 tiers including Tier 4 Extended Social/CRM platforms
 """
 import asyncio
 import time
@@ -32,6 +32,32 @@ from shared.utils.logging import setup_logging
 from shared.health.health_checks import HealthChecker
 from credential_manager import credential_manager
 
+# Import e-commerce connectors
+from connectors.shopify_connector import ShopifyConnector
+from connectors.woocommerce_connector import WooCommerceConnector
+from connectors.amazon_connector import AmazonConnector
+
+# Import Tier 2 connectors (CRM and Payment)
+from connectors.hubspot_connector import HubSpotConnector
+from connectors.salesforce_connector import SalesforceConnector
+from connectors.stripe_connector import StripeConnector
+from connectors.paypal_connector import PayPalConnector
+
+# Import Tier 0 connectors (Legacy)
+from connectors.meta_business_connector import MetaBusinessConnector, create_meta_business_connector
+from connectors.google_ads_connector import GoogleAdsConnector, create_google_ads_connector
+from connectors.klaviyo_connector import KlaviyoConnector, create_klaviyo_connector
+
+# Import Tier 3 connectors (Social/Analytics/Data)
+from connectors.tiktok_connector import TikTokConnector
+from connectors.snowflake_connector import SnowflakeConnector
+from connectors.databricks_connector import DatabricksConnector
+
+# Import Tier 4 connectors (Extended Social/CRM)
+from connectors.zoho_crm_connector import ZohoCRMConnector
+from connectors.linkedin_ads_connector import LinkedInAdsConnector
+from connectors.x_ads_connector import XAdsConnector
+
 # Service configuration
 config = get_service_config("data_ingestion", 8006)
 logger = setup_logging("data_ingestion")
@@ -45,8 +71,8 @@ MEMORY_SERVICE_URL = os.getenv("MEMORY_SERVICE_URL", "http://localhost:8003")
 # FastAPI app
 app = FastAPI(
     title="LiftOS Data Ingestion Service",
-    description="API Connectors for Meta Business, Google Ads, and Klaviyo",
-    version="1.0.0",
+    description="API Connectors for 16 platforms across 4 tiers: Meta Business, Google Ads, Klaviyo, Shopify, WooCommerce, Amazon Seller Central, HubSpot, Salesforce, Stripe, PayPal, TikTok, Snowflake, Databricks, Zoho CRM, LinkedIn Ads, and X Ads",
+    version="1.4.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -121,278 +147,6 @@ def get_user_context(
     }
 
 
-class MetaBusinessConnector:
-    """Meta Business API connector"""
-    
-    def __init__(self, access_token: str, app_id: str, app_secret: str):
-        self.access_token = access_token
-        self.app_id = app_id
-        self.app_secret = app_secret
-        self.base_url = "https://graph.facebook.com/v18.0"
-        self.client = httpx.AsyncClient(timeout=30.0)
-    
-    async def get_ad_accounts(self) -> List[Dict[str, Any]]:
-        """Get available ad accounts"""
-        try:
-            url = f"{self.base_url}/me/adaccounts"
-            params = {
-                "access_token": self.access_token,
-                "fields": "id,name,account_status,currency,timezone_name"
-            }
-            
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
-            
-            data = response.json()
-            return data.get("data", [])
-            
-        except Exception as e:
-            logger.error(f"Failed to get Meta ad accounts: {str(e)}")
-            raise
-    
-    async def get_campaigns(self, account_id: str, date_start: date, date_end: date) -> List[Dict[str, Any]]:
-        """Get campaigns data from Meta Business API"""
-        try:
-            url = f"{self.base_url}/{account_id}/campaigns"
-            params = {
-                "access_token": self.access_token,
-                "fields": "id,name,status,objective,daily_budget,lifetime_budget,created_time,updated_time",
-                "limit": 100
-            }
-            
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
-            
-            data = response.json()
-            campaigns = data.get("data", [])
-            
-            # Get insights for each campaign
-            campaign_insights = []
-            for campaign in campaigns:
-                insights = await self.get_campaign_insights(
-                    campaign["id"], date_start, date_end
-                )
-                campaign_data = {**campaign, "insights": insights}
-                campaign_insights.append(campaign_data)
-            
-            return campaign_insights
-            
-        except Exception as e:
-            logger.error(f"Failed to get Meta campaigns: {str(e)}")
-            raise
-    
-    async def get_campaign_insights(self, campaign_id: str, date_start: date, date_end: date) -> Dict[str, Any]:
-        """Get campaign insights from Meta Business API"""
-        try:
-            url = f"{self.base_url}/{campaign_id}/insights"
-            params = {
-                "access_token": self.access_token,
-                "fields": "spend,impressions,clicks,actions,cpm,cpc,ctr,frequency,reach,video_views",
-                "time_range": json.dumps({
-                    "since": date_start.strftime("%Y-%m-%d"),
-                    "until": date_end.strftime("%Y-%m-%d")
-                }),
-                "level": "campaign"
-            }
-            
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
-            
-            data = response.json()
-            insights = data.get("data", [])
-            
-            return insights[0] if insights else {}
-            
-        except Exception as e:
-            logger.error(f"Failed to get Meta campaign insights: {str(e)}")
-            return {}
-    
-    async def close(self):
-        """Close the HTTP client"""
-        await self.client.aclose()
-
-
-class GoogleAdsConnector:
-    """Google Ads API connector"""
-    
-    def __init__(self, developer_token: str, client_id: str, client_secret: str, refresh_token: str):
-        self.developer_token = developer_token
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.refresh_token = refresh_token
-        self.access_token = None
-        self.base_url = "https://googleads.googleapis.com/v14"
-        self.client = httpx.AsyncClient(timeout=30.0)
-    
-    async def authenticate(self):
-        """Get access token using refresh token"""
-        try:
-            url = "https://oauth2.googleapis.com/token"
-            data = {
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
-                "refresh_token": self.refresh_token,
-                "grant_type": "refresh_token"
-            }
-            
-            response = await self.client.post(url, data=data)
-            response.raise_for_status()
-            
-            token_data = response.json()
-            self.access_token = token_data["access_token"]
-            
-        except Exception as e:
-            logger.error(f"Failed to authenticate with Google Ads: {str(e)}")
-            raise
-    
-    async def get_customers(self) -> List[Dict[str, Any]]:
-        """Get available customer accounts"""
-        try:
-            if not self.access_token:
-                await self.authenticate()
-            
-            url = f"{self.base_url}/customers:listAccessibleCustomers"
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "developer-token": self.developer_token
-            }
-            
-            response = await self.client.get(url, headers=headers)
-            response.raise_for_status()
-            
-            data = response.json()
-            return data.get("resourceNames", [])
-            
-        except Exception as e:
-            logger.error(f"Failed to get Google Ads customers: {str(e)}")
-            raise
-    
-    async def get_campaigns(self, customer_id: str, date_start: date, date_end: date) -> List[Dict[str, Any]]:
-        """Get campaigns data from Google Ads API"""
-        try:
-            if not self.access_token:
-                await self.authenticate()
-            
-            # Google Ads Reporting API query
-            query = f"""
-                SELECT 
-                    campaign.id,
-                    campaign.name,
-                    campaign.status,
-                    campaign.advertising_channel_type,
-                    metrics.cost_micros,
-                    metrics.impressions,
-                    metrics.clicks,
-                    metrics.conversions,
-                    metrics.conversions_value,
-                    segments.date
-                FROM campaign 
-                WHERE segments.date BETWEEN '{date_start.strftime('%Y-%m-%d')}' AND '{date_end.strftime('%Y-%m-%d')}'
-            """
-            
-            url = f"{self.base_url}/customers/{customer_id}/googleAds:searchStream"
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "developer-token": self.developer_token,
-                "Content-Type": "application/json"
-            }
-            
-            payload = {"query": query}
-            
-            response = await self.client.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            
-            # Process streaming response
-            campaigns_data = []
-            for line in response.text.strip().split('\n'):
-                if line:
-                    result = json.loads(line)
-                    if "results" in result:
-                        campaigns_data.extend(result["results"])
-            
-            return campaigns_data
-            
-        except Exception as e:
-            logger.error(f"Failed to get Google Ads campaigns: {str(e)}")
-            raise
-    
-    async def close(self):
-        """Close the HTTP client"""
-        await self.client.aclose()
-
-
-class KlaviyoConnector:
-    """Klaviyo API connector"""
-    
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-        self.base_url = "https://a.klaviyo.com/api"
-        self.client = httpx.AsyncClient(timeout=30.0)
-    
-    async def get_campaigns(self, date_start: date, date_end: date) -> List[Dict[str, Any]]:
-        """Get campaigns data from Klaviyo API"""
-        try:
-            url = f"{self.base_url}/campaigns"
-            headers = {
-                "Authorization": f"Klaviyo-API-Key {self.api_key}",
-                "revision": "2024-02-15"
-            }
-            
-            params = {
-                "filter": f"greater-than(send_time,{date_start.isoformat()}),less-than(send_time,{date_end.isoformat()})",
-                "include": "campaign-messages",
-                "page[size]": 100
-            }
-            
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
-            
-            data = response.json()
-            campaigns = data.get("data", [])
-            
-            # Get metrics for each campaign
-            campaign_metrics = []
-            for campaign in campaigns:
-                metrics = await self.get_campaign_metrics(campaign["id"])
-                campaign_data = {**campaign, "metrics": metrics}
-                campaign_metrics.append(campaign_data)
-            
-            return campaign_metrics
-            
-        except Exception as e:
-            logger.error(f"Failed to get Klaviyo campaigns: {str(e)}")
-            raise
-    
-    async def get_campaign_metrics(self, campaign_id: str) -> Dict[str, Any]:
-        """Get campaign metrics from Klaviyo API"""
-        try:
-            url = f"{self.base_url}/campaign-recipient-estimation-jobs"
-            headers = {
-                "Authorization": f"Klaviyo-API-Key {self.api_key}",
-                "revision": "2024-02-15"
-            }
-            
-            # This is a simplified version - actual implementation would use
-            # the proper Klaviyo metrics endpoints
-            params = {
-                "filter": f"equals(campaign_id,{campaign_id})"
-            }
-            
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
-            
-            data = response.json()
-            return data.get("data", {})
-            
-        except Exception as e:
-            logger.error(f"Failed to get Klaviyo campaign metrics: {str(e)}")
-            return {}
-    
-    async def close(self):
-        """Close the HTTP client"""
-        await self.client.aclose()
-
-
 # API Endpoints
 @app.get("/health", response_model=HealthCheck)
 async def health_check():
@@ -427,8 +181,19 @@ async def root():
     return APIResponse(
         message="LiftOS Data Ingestion Service",
         data={
-            "version": "1.0.0",
-            "supported_platforms": ["meta_business", "google_ads", "klaviyo"],
+            "version": "1.4.0",
+            "supported_platforms": [
+                # Tier 0 (Legacy)
+                "meta_business", "google_ads", "klaviyo",
+                # Tier 1 (E-commerce)
+                "shopify", "woocommerce", "amazon_seller_central",
+                # Tier 2 (CRM/Payment)
+                "hubspot", "salesforce", "stripe", "paypal",
+                # Tier 3 (Social/Analytics/Data)
+                "tiktok", "snowflake", "databricks",
+                # Tier 4 (Extended Social/CRM)
+                "zoho_crm", "linkedin_ads", "x_ads"
+            ],
             "docs": "/docs"
         }
     )
@@ -548,6 +313,35 @@ async def execute_sync_job(job_id: str, request: SyncJobRequest, user_context: D
             raw_data = await sync_google_ads_data(credentials, request)
         elif request.platform == DataSource.KLAVIYO:
             raw_data = await sync_klaviyo_data(credentials, request)
+        elif request.platform == DataSource.SHOPIFY:
+            raw_data = await sync_shopify_data(credentials, request, user_context)
+        elif request.platform == DataSource.WOOCOMMERCE:
+            raw_data = await sync_woocommerce_data(credentials, request, user_context)
+        elif request.platform == DataSource.AMAZON_SELLER_CENTRAL:
+            raw_data = await sync_amazon_data(credentials, request, user_context)
+        # Tier 2 platforms
+        elif request.platform == DataSource.HUBSPOT:
+            raw_data = await sync_hubspot_data(credentials, request, user_context)
+        elif request.platform == DataSource.SALESFORCE:
+            raw_data = await sync_salesforce_data(credentials, request, user_context)
+        elif request.platform == DataSource.STRIPE:
+            raw_data = await sync_stripe_data(credentials, request, user_context)
+        elif request.platform == DataSource.PAYPAL:
+            raw_data = await sync_paypal_data(credentials, request, user_context)
+        # Tier 3 platforms
+        elif request.platform == DataSource.TIKTOK:
+            raw_data = await sync_tiktok_data(credentials, request, user_context)
+        elif request.platform == DataSource.SNOWFLAKE:
+            raw_data = await sync_snowflake_data(credentials, request, user_context)
+        elif request.platform == DataSource.DATABRICKS:
+            raw_data = await sync_databricks_data(credentials, request, user_context)
+        # Tier 4 platforms
+        elif request.platform == DataSource.ZOHO_CRM:
+            raw_data = await sync_zoho_crm_data(credentials, request, user_context)
+        elif request.platform == DataSource.LINKEDIN_ADS:
+            raw_data = await sync_linkedin_ads_data(credentials, request, user_context)
+        elif request.platform == DataSource.X_ADS:
+            raw_data = await sync_x_ads_data(credentials, request, user_context)
         else:
             raise Exception(f"Unsupported platform: {request.platform.value}")
         
@@ -612,6 +406,35 @@ async def get_platform_credentials(platform: DataSource, org_id: str) -> Optiona
             return await credential_manager.get_google_ads_credentials(org_id)
         elif platform == DataSource.KLAVIYO:
             return await credential_manager.get_klaviyo_credentials(org_id)
+        elif platform == DataSource.SHOPIFY:
+            return await credential_manager.get_shopify_credentials(org_id)
+        elif platform == DataSource.WOOCOMMERCE:
+            return await credential_manager.get_woocommerce_credentials(org_id)
+        elif platform == DataSource.AMAZON_SELLER_CENTRAL:
+            return await credential_manager.get_amazon_credentials(org_id)
+        # Tier 2 platforms
+        elif platform == DataSource.HUBSPOT:
+            return await credential_manager.get_hubspot_credentials(org_id)
+        elif platform == DataSource.SALESFORCE:
+            return await credential_manager.get_salesforce_credentials(org_id)
+        elif platform == DataSource.STRIPE:
+            return await credential_manager.get_stripe_credentials(org_id)
+        elif platform == DataSource.PAYPAL:
+            return await credential_manager.get_paypal_credentials(org_id)
+        # Tier 3 platforms
+        elif platform == DataSource.TIKTOK:
+            return await credential_manager.get_tiktok_credentials(org_id)
+        elif platform == DataSource.SNOWFLAKE:
+            return await credential_manager.get_snowflake_credentials(org_id)
+        elif platform == DataSource.DATABRICKS:
+            return await credential_manager.get_databricks_credentials(org_id)
+        # Tier 4 platforms
+        elif platform == DataSource.ZOHO_CRM:
+            return await credential_manager.get_zoho_crm_credentials(org_id)
+        elif platform == DataSource.LINKEDIN_ADS:
+            return await credential_manager.get_linkedin_ads_credentials(org_id)
+        elif platform == DataSource.X_ADS:
+            return await credential_manager.get_x_ads_credentials(org_id)
         else:
             logger.error(f"Unsupported platform: {platform}")
             return None
@@ -621,38 +444,44 @@ async def get_platform_credentials(platform: DataSource, org_id: str) -> Optiona
 
 
 async def sync_meta_business_data(credentials: Dict[str, str], request: SyncJobRequest) -> List[Dict[str, Any]]:
-    """Sync data from Meta Business API"""
-    connector = MetaBusinessConnector(
-        access_token=credentials["access_token"],
-        app_id=credentials["app_id"],
-        app_secret=credentials["app_secret"]
-    )
+    """Sync data from Meta Business API with KSE integration"""
+    connector = await create_meta_business_connector(credentials)
     
     try:
-        # Get ad accounts
-        accounts = await connector.get_ad_accounts()
+        # Extract enhanced data with KSE integration
+        meta_data = await connector.extract_data(
+            request.date_range_start,
+            request.date_range_end
+        )
         
+        # Transform to standard format for backward compatibility
         all_data = []
-        for account in accounts:
-            account_id = account["id"]
-            
-            # Get campaigns for this account
-            campaigns = await connector.get_campaigns(
-                account_id, request.date_range_start, request.date_range_end
-            )
-            
-            for campaign in campaigns:
-                # Transform to standard format
-                campaign_data = {
-                    "id": f"meta_{campaign['id']}",
-                    "account_id": account_id,
-                    "campaign_id": campaign["id"],
-                    "campaign_name": campaign.get("name", ""),
-                    "status": campaign.get("status", ""),
-                    "objective": campaign.get("objective", ""),
-                    **campaign.get("insights", {})
-                }
-                all_data.append(campaign_data)
+        for data in meta_data:
+            campaign_data = {
+                "id": f"meta_{data.campaign_id}",
+                "account_id": data.account_id,
+                "campaign_id": data.campaign_id,
+                "campaign_name": data.campaign_name,
+                "status": data.status,
+                "objective": data.objective,
+                "spend": data.spend,
+                "impressions": data.impressions,
+                "clicks": data.clicks,
+                "reach": data.reach,
+                "frequency": data.frequency,
+                "cpm": data.cpm,
+                "cpc": data.cpc,
+                "ctr": data.ctr,
+                "video_views": data.video_views,
+                "actions": data.actions,
+                "created_time": data.created_time,
+                "updated_time": data.updated_time,
+                # KSE enhanced fields
+                "kse_enhanced": True,
+                "data_quality_score": getattr(data, 'quality_score', None),
+                "semantic_embeddings": getattr(data, 'embeddings', None)
+            }
+            all_data.append(campaign_data)
         
         return all_data
         
@@ -661,49 +490,38 @@ async def sync_meta_business_data(credentials: Dict[str, str], request: SyncJobR
 
 
 async def sync_google_ads_data(credentials: Dict[str, str], request: SyncJobRequest) -> List[Dict[str, Any]]:
-    """Sync data from Google Ads API"""
-    connector = GoogleAdsConnector(
-        developer_token=credentials["developer_token"],
-        client_id=credentials["client_id"],
-        client_secret=credentials["client_secret"],
-        refresh_token=credentials["refresh_token"]
-    )
+    """Sync data from Google Ads API with KSE integration"""
+    connector = await create_google_ads_connector(credentials)
     
     try:
-        # Get customers
-        customers = await connector.get_customers()
+        # Extract enhanced data with KSE integration
+        google_ads_data = await connector.extract_data(
+            request.date_range_start,
+            request.date_range_end
+        )
         
+        # Transform to standard format for backward compatibility
         all_data = []
-        for customer_resource in customers:
-            # Extract customer ID from resource name
-            customer_id = customer_resource.split("/")[-1]
-            
-            # Get campaigns for this customer
-            campaigns = await connector.get_campaigns(
-                customer_id, request.date_range_start, request.date_range_end
-            )
-            
-            for campaign_result in campaigns:
-                campaign = campaign_result.get("campaign", {})
-                metrics = campaign_result.get("metrics", {})
-                segments = campaign_result.get("segments", {})
-                
-                # Transform to standard format
-                campaign_data = {
-                    "id": f"google_{campaign.get('id', '')}",
-                    "customer_id": customer_id,
-                    "campaign_id": campaign.get("id", ""),
-                    "campaign_name": campaign.get("name", ""),
-                    "status": campaign.get("status", ""),
-                    "advertising_channel_type": campaign.get("advertisingChannelType", ""),
-                    "cost_micros": metrics.get("costMicros", 0),
-                    "impressions": metrics.get("impressions", 0),
-                    "clicks": metrics.get("clicks", 0),
-                    "conversions": metrics.get("conversions", 0),
-                    "conversions_value": metrics.get("conversionsValue", 0),
-                    "date": segments.get("date", "")
-                }
-                all_data.append(campaign_data)
+        for data in google_ads_data:
+            campaign_data = {
+                "id": f"google_{data.campaign_id}",
+                "customer_id": data.customer_id,
+                "campaign_id": data.campaign_id,
+                "campaign_name": data.campaign_name,
+                "status": data.status,
+                "advertising_channel_type": data.advertising_channel_type,
+                "cost_micros": data.cost_micros,
+                "impressions": data.impressions,
+                "clicks": data.clicks,
+                "conversions": data.conversions,
+                "conversions_value": data.conversions_value,
+                "date": data.date,
+                # KSE enhanced fields
+                "kse_enhanced": True,
+                "data_quality_score": getattr(data, 'quality_score', None),
+                "semantic_embeddings": getattr(data, 'embeddings', None)
+            }
+            all_data.append(campaign_data)
         
         return all_data
         
@@ -712,32 +530,41 @@ async def sync_google_ads_data(credentials: Dict[str, str], request: SyncJobRequ
 
 
 async def sync_klaviyo_data(credentials: Dict[str, str], request: SyncJobRequest) -> List[Dict[str, Any]]:
-    """Sync data from Klaviyo API"""
-    connector = KlaviyoConnector(api_key=credentials["api_key"])
+    """Sync data from Klaviyo API with KSE integration"""
+    connector = await create_klaviyo_connector(credentials)
     
     try:
-        # Get campaigns
-        campaigns = await connector.get_campaigns(
-            request.date_range_start, request.date_range_end
+        # Extract enhanced data with KSE integration
+        klaviyo_data = await connector.extract_data(
+            request.date_range_start,
+            request.date_range_end
         )
         
+        # Transform to standard format for backward compatibility
         all_data = []
-        for campaign in campaigns:
-            attributes = campaign.get("attributes", {})
-            metrics = campaign.get("metrics", {})
-            
-            # Transform to standard format
+        for data in klaviyo_data:
             campaign_data = {
-                "id": f"klaviyo_{campaign.get('id', '')}",
-                "campaign_id": campaign.get("id", ""),
-                "campaign_name": attributes.get("name", ""),
-                "status": attributes.get("status", ""),
-                "send_time": attributes.get("send_time", ""),
-                "delivered": metrics.get("delivered", 0),
-                "opened": metrics.get("opened", 0),
-                "clicked": metrics.get("clicked", 0),
-                "unsubscribed": metrics.get("unsubscribed", 0),
-                "bounced": metrics.get("bounced", 0)
+                "id": f"klaviyo_{data.campaign_id}",
+                "campaign_id": data.campaign_id,
+                "campaign_name": data.campaign_name,
+                "status": data.status,
+                "send_time": data.send_time,
+                "sent_count": data.sent_count,
+                "delivered_count": data.delivered_count,
+                "open_count": data.open_count,
+                "click_count": data.click_count,
+                "unsubscribe_count": data.unsubscribe_count,
+                "bounce_count": data.bounce_count,
+                "open_rate": data.open_rate,
+                "click_rate": data.click_rate,
+                "unsubscribe_rate": data.unsubscribe_rate,
+                "bounce_rate": data.bounce_rate,
+                "subject_line": data.subject_line,
+                "campaign_type": data.campaign_type,
+                # KSE enhanced fields
+                "kse_enhanced": True,
+                "data_quality_score": getattr(data, 'quality_score', None),
+                "semantic_embeddings": getattr(data, 'embeddings', None)
             }
             all_data.append(campaign_data)
         
@@ -745,6 +572,466 @@ async def sync_klaviyo_data(credentials: Dict[str, str], request: SyncJobRequest
         
     finally:
         await connector.close()
+
+
+async def sync_shopify_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from Shopify API with KSE integration"""
+    connector = ShopifyConnector(
+        shop_domain=credentials["shop_domain"],
+        access_token=credentials["access_token"]
+    )
+    
+    try:
+        # Get historical data for causal analysis
+        historical_data = await get_historical_data(
+            request.platform.value,
+            user_context,
+            days_back=30
+        )
+        
+        # Extract causal marketing data
+        causal_data_list = await connector.extract_causal_marketing_data(
+            org_id=user_context["org_id"],
+            start_date=request.date_range_start,
+            end_date=request.date_range_end,
+            historical_data=historical_data
+        )
+        
+        # Convert to standard format for compatibility
+        all_data = []
+        for causal_data in causal_data_list:
+            data_dict = causal_data.model_dump()
+            data_dict["id"] = f"shopify_{data_dict.get('record_id', '')}"
+            data_dict["platform"] = "shopify"
+            all_data.append(data_dict)
+        
+        logger.info(f"Synced {len(all_data)} Shopify records with KSE integration")
+        return all_data
+        
+    finally:
+        await connector.close()
+
+
+async def sync_woocommerce_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from WooCommerce API with KSE integration"""
+    connector = WooCommerceConnector(
+        site_url=credentials["site_url"],
+        consumer_key=credentials["consumer_key"],
+        consumer_secret=credentials["consumer_secret"]
+    )
+    
+    try:
+        # Get historical data for causal analysis
+        historical_data = await get_historical_data(
+            request.platform.value,
+            user_context,
+            days_back=30
+        )
+        
+        # Extract causal marketing data
+        causal_data_list = await connector.extract_causal_marketing_data(
+            org_id=user_context["org_id"],
+            start_date=request.date_range_start,
+            end_date=request.date_range_end,
+            historical_data=historical_data
+        )
+        
+        # Convert to standard format for compatibility
+        all_data = []
+        for causal_data in causal_data_list:
+            data_dict = causal_data.model_dump()
+            data_dict["id"] = f"woocommerce_{data_dict.get('record_id', '')}"
+            data_dict["platform"] = "woocommerce"
+            all_data.append(data_dict)
+        
+        logger.info(f"Synced {len(all_data)} WooCommerce records with KSE integration")
+        return all_data
+        
+    finally:
+        await connector.close()
+
+
+async def sync_amazon_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from Amazon Seller Central API with KSE integration"""
+    connector = AmazonConnector(
+        marketplace_id=credentials["marketplace_id"],
+        seller_id=credentials["seller_id"],
+        aws_access_key=credentials["aws_access_key"],
+        aws_secret_key=credentials["aws_secret_key"],
+        role_arn=credentials["role_arn"],
+        client_id=credentials["client_id"],
+        client_secret=credentials["client_secret"],
+        refresh_token=credentials["refresh_token"]
+    )
+    
+    try:
+        # Get historical data for causal analysis
+        historical_data = await get_historical_data(
+            request.platform.value,
+            user_context,
+            days_back=30
+        )
+        
+        # Extract causal marketing data
+        causal_data_list = await connector.extract_causal_marketing_data(
+            org_id=user_context["org_id"],
+            start_date=request.date_range_start,
+            end_date=request.date_range_end,
+            historical_data=historical_data
+        )
+        
+        # Convert to standard format for compatibility
+        all_data = []
+        for causal_data in causal_data_list:
+            data_dict = causal_data.model_dump()
+            data_dict["id"] = f"amazon_{data_dict.get('record_id', '')}"
+            data_dict["platform"] = "amazon_seller_central"
+            all_data.append(data_dict)
+        
+        logger.info(f"Synced {len(all_data)} Amazon records with KSE integration")
+        return all_data
+        
+    finally:
+        await connector.close()
+
+
+async def sync_hubspot_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from HubSpot CRM API with KSE integration"""
+    connector = HubSpotConnector(api_key=credentials["api_key"])
+    
+    try:
+        # Get historical data for causal analysis
+        historical_data = await get_historical_data(
+            request.platform.value,
+            user_context,
+            days_back=30
+        )
+        
+        # Extract causal marketing data
+        causal_data_list = await connector.extract_causal_marketing_data(
+            org_id=user_context["org_id"],
+            start_date=request.date_range_start,
+            end_date=request.date_range_end,
+            historical_data=historical_data
+        )
+        
+        # Convert to standard format for compatibility
+        all_data = []
+        for causal_data in causal_data_list:
+            data_dict = causal_data.model_dump()
+            data_dict["id"] = f"hubspot_{data_dict.get('record_id', '')}"
+            data_dict["platform"] = "hubspot"
+            all_data.append(data_dict)
+        
+        logger.info(f"Synced {len(all_data)} HubSpot records with KSE integration")
+        return all_data
+        
+    finally:
+        await connector.close()
+
+
+async def sync_salesforce_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from Salesforce CRM API with KSE integration"""
+    connector = SalesforceConnector(
+        username=credentials["username"],
+        password=credentials["password"],
+        security_token=credentials["security_token"],
+        client_id=credentials["client_id"],
+        client_secret=credentials["client_secret"],
+        is_sandbox=credentials.get("is_sandbox", "false").lower() == "true"
+    )
+    
+    try:
+        # Get historical data for causal analysis
+        historical_data = await get_historical_data(
+            request.platform.value,
+            user_context,
+            days_back=30
+        )
+        
+        # Extract causal marketing data
+        causal_data_list = await connector.extract_causal_marketing_data(
+            org_id=user_context["org_id"],
+            start_date=request.date_range_start,
+            end_date=request.date_range_end,
+            historical_data=historical_data
+        )
+        
+        # Convert to standard format for compatibility
+        all_data = []
+        for causal_data in causal_data_list:
+            data_dict = causal_data.model_dump()
+            data_dict["id"] = f"salesforce_{data_dict.get('record_id', '')}"
+            data_dict["platform"] = "salesforce"
+            all_data.append(data_dict)
+        
+        logger.info(f"Synced {len(all_data)} Salesforce records with KSE integration")
+        return all_data
+        
+    finally:
+        await connector.close()
+
+
+async def sync_stripe_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from Stripe Payment API with KSE integration"""
+    connector = StripeConnector(api_key=credentials["api_key"])
+    
+    try:
+        # Get historical data for causal analysis
+        historical_data = await get_historical_data(
+            request.platform.value,
+            user_context,
+            days_back=30
+        )
+        
+        # Extract causal marketing data
+        causal_data_list = await connector.extract_causal_marketing_data(
+            org_id=user_context["org_id"],
+            start_date=request.date_range_start,
+            end_date=request.date_range_end,
+            historical_data=historical_data
+        )
+        
+        # Convert to standard format for compatibility
+        all_data = []
+        for causal_data in causal_data_list:
+            data_dict = causal_data.model_dump()
+            data_dict["id"] = f"stripe_{data_dict.get('record_id', '')}"
+            data_dict["platform"] = "stripe"
+            all_data.append(data_dict)
+        
+        logger.info(f"Synced {len(all_data)} Stripe records with KSE integration")
+        return all_data
+        
+    finally:
+        await connector.close()
+
+
+async def sync_paypal_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from PayPal Payment API with KSE integration"""
+    connector = PayPalConnector(
+        client_id=credentials["client_id"],
+        client_secret=credentials["client_secret"],
+        is_sandbox=credentials.get("is_sandbox", "false").lower() == "true"
+    )
+    
+    try:
+        # Get historical data for causal analysis
+        historical_data = await get_historical_data(
+            request.platform.value,
+            user_context,
+            days_back=30
+        )
+        
+        # Extract causal marketing data
+        causal_data_list = await connector.extract_causal_marketing_data(
+            org_id=user_context["org_id"],
+            start_date=request.date_range_start,
+            end_date=request.date_range_end,
+            historical_data=historical_data
+        )
+        
+        # Convert to standard format for compatibility
+        all_data = []
+        for causal_data in causal_data_list:
+            data_dict = causal_data.model_dump()
+            data_dict["id"] = f"paypal_{data_dict.get('record_id', '')}"
+            data_dict["platform"] = "paypal"
+            all_data.append(data_dict)
+        
+        logger.info(f"Synced {len(all_data)} PayPal records with KSE integration")
+        return all_data
+        
+    finally:
+        await connector.close()
+
+
+async def sync_tiktok_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from TikTok for Business API with KSE integration"""
+    async with TikTokConnector(credentials) as connector:
+        try:
+            # Sync TikTok data with causal analysis
+            sync_result = await connector.sync_data(
+                str(request.date_range_start),
+                str(request.date_range_end)
+            )
+            
+            # Convert to standard format for compatibility
+            all_data = []
+            for campaign in sync_result.get("campaigns", []):
+                data_dict = campaign.copy()
+                data_dict["id"] = f"tiktok_{campaign.get('campaign_id', '')}"
+                data_dict["platform"] = "tiktok"
+                all_data.append(data_dict)
+            
+            logger.info(f"Synced {len(all_data)} TikTok campaigns with KSE integration")
+            return all_data
+            
+        except Exception as e:
+            logger.error(f"TikTok sync failed: {str(e)}")
+            raise
+
+
+async def sync_snowflake_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from Snowflake Data Warehouse with KSE integration"""
+    async with SnowflakeConnector(credentials) as connector:
+        try:
+            # Sync Snowflake data with quality analysis
+            sync_result = await connector.sync_data(
+                str(request.date_range_start),
+                str(request.date_range_end)
+            )
+            
+            # Convert to standard format for compatibility
+            all_data = []
+            for table in sync_result.get("tables", []):
+                data_dict = table.copy()
+                data_dict["id"] = f"snowflake_{table.get('table_name', '')}"
+                data_dict["platform"] = "snowflake"
+                all_data.append(data_dict)
+            
+            logger.info(f"Analyzed {len(all_data)} Snowflake tables with KSE integration")
+            return all_data
+            
+        except Exception as e:
+            logger.error(f"Snowflake sync failed: {str(e)}")
+            raise
+
+
+async def sync_databricks_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from Databricks Analytics Platform with KSE integration"""
+    async with DatabricksConnector(credentials) as connector:
+        try:
+            # Sync Databricks data with ML workflow analysis
+            sync_result = await connector.sync_data(
+                str(request.date_range_start),
+                str(request.date_range_end)
+            )
+            
+            # Convert to standard format for compatibility
+            all_data = []
+            for job in sync_result.get("jobs", []):
+                data_dict = job.copy()
+                data_dict["id"] = f"databricks_{job.get('job_id', '')}"
+                data_dict["platform"] = "databricks"
+                all_data.append(data_dict)
+            
+            logger.info(f"Analyzed {len(all_data)} Databricks jobs with KSE integration")
+            return all_data
+            
+        except Exception as e:
+            logger.error(f"Databricks sync failed: {str(e)}")
+            raise
+
+
+async def sync_zoho_crm_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from Zoho CRM API with KSE integration"""
+    # Import the credentials class
+    from connectors.zoho_crm_connector import ZohoCRMCredentials
+    
+    # Create credentials object
+    zoho_creds = ZohoCRMCredentials(
+        client_id=credentials["client_id"],
+        client_secret=credentials["client_secret"],
+        refresh_token=credentials["refresh_token"],
+        domain=credentials.get("domain", "com")
+    )
+    
+    async with ZohoCRMConnector(zoho_creds) as connector:
+        try:
+            # Sync Zoho CRM data with pipeline analytics
+            sync_result = await connector.sync_data(
+                str(request.date_range_start),
+                str(request.date_range_end)
+            )
+            
+            # Convert to standard format for compatibility
+            all_data = []
+            for record in sync_result.get("records", []):
+                data_dict = record.copy()
+                data_dict["id"] = f"zoho_crm_{record.get('record_id', '')}"
+                data_dict["platform"] = "zoho_crm"
+                all_data.append(data_dict)
+            
+            logger.info(f"Synced {len(all_data)} Zoho CRM records with KSE integration")
+            return all_data
+            
+        except Exception as e:
+            logger.error(f"Zoho CRM sync failed: {str(e)}")
+            raise
+
+
+async def sync_linkedin_ads_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from LinkedIn Ads API with KSE integration"""
+    # Import the credentials class
+    from connectors.linkedin_ads_connector import LinkedInAdsCredentials
+    
+    # Create credentials object
+    linkedin_creds = LinkedInAdsCredentials(
+        client_id=credentials["client_id"],
+        client_secret=credentials["client_secret"],
+        access_token=credentials["access_token"]
+    )
+    
+    async with LinkedInAdsConnector(linkedin_creds) as connector:
+        try:
+            # Sync LinkedIn Ads data with professional targeting analytics
+            sync_result = await connector.sync_data(
+                str(request.date_range_start),
+                str(request.date_range_end)
+            )
+            
+            # Convert to standard format for compatibility
+            all_data = []
+            for campaign in sync_result.get("campaigns", []):
+                data_dict = campaign.copy()
+                data_dict["id"] = f"linkedin_ads_{campaign.get('campaign_id', '')}"
+                data_dict["platform"] = "linkedin_ads"
+                all_data.append(data_dict)
+            
+            logger.info(f"Synced {len(all_data)} LinkedIn Ads campaigns with KSE integration")
+            return all_data
+            
+        except Exception as e:
+            logger.error(f"LinkedIn Ads sync failed: {str(e)}")
+            raise
+
+
+async def sync_x_ads_data(credentials: Dict[str, str], request: SyncJobRequest, user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Sync data from X (Twitter) Ads API with KSE integration"""
+    # Import the credentials class
+    from connectors.x_ads_connector import XAdsCredentials
+    
+    # Create credentials object
+    x_ads_creds = XAdsCredentials(
+        consumer_key=credentials["consumer_key"],
+        consumer_secret=credentials["consumer_secret"],
+        access_token=credentials["access_token"],
+        access_token_secret=credentials["access_token_secret"]
+    )
+    
+    async with XAdsConnector(x_ads_creds) as connector:
+        try:
+            # Sync X Ads data with viral amplification analytics
+            sync_result = await connector.sync_data(
+                str(request.date_range_start),
+                str(request.date_range_end)
+            )
+            
+            # Convert to standard format for compatibility
+            all_data = []
+            for campaign in sync_result.get("campaigns", []):
+                data_dict = campaign.copy()
+                data_dict["id"] = f"x_ads_{campaign.get('campaign_id', '')}"
+                data_dict["platform"] = "x_ads"
+                all_data.append(data_dict)
+            
+            logger.info(f"Synced {len(all_data)} X Ads campaigns with KSE integration")
+            return all_data
+            
+        except Exception as e:
+            logger.error(f"X Ads sync failed: {str(e)}")
+            raise
 
 
 async def send_to_memory_service(data: List[Dict[str, Any]], request: SyncJobRequest, user_context: Dict[str, Any]):

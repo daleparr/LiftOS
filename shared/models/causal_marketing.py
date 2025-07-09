@@ -64,6 +64,20 @@ class ConfounderVariable(BaseModel):
     control_strategy: str = Field(description="How to control for this confounder")
 
 
+class TreatmentAssignmentResult(BaseModel):
+    """Result of treatment assignment for causal experiments"""
+    unit_id: str = Field(description="Identifier for the randomization unit")
+    treatment_type: TreatmentType = Field(description="Type of treatment assigned")
+    assignment_probability: float = Field(ge=0.0, le=1.0, description="Probability of assignment")
+    assignment_date: datetime = Field(description="When the treatment was assigned")
+    treatment_start_date: Optional[datetime] = Field(None, description="When treatment started")
+    treatment_end_date: Optional[datetime] = Field(None, description="When treatment ended")
+    randomization_unit: RandomizationUnit = Field(description="Unit of randomization")
+    experiment_id: str = Field(description="Identifier for the experiment")
+    control_group: bool = Field(description="Whether this is a control group assignment")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional assignment metadata")
+
+
 class CausalGraph(BaseModel):
     """Causal graph representation"""
     nodes: List[str] = Field(description="Variables in the causal graph")

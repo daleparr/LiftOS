@@ -555,14 +555,68 @@ class EnhancedKSEIntegration:
             total_time = sum(op.duration_ns for op in self.operation_history)
             self.average_operation_time = total_time / len(self.operation_history)
     
+    async def enhance_marketing_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Enhance marketing data with KSE integration.
+        
+        Args:
+            data: Marketing data to enhance
+            
+        Returns:
+            Enhanced marketing data with KSE insights
+        """
+        try:
+            # Create enhanced data structure
+            enhanced_data = data.copy()
+            
+            # Add KSE metadata
+            enhanced_data["kse_enhanced"] = True
+            enhanced_data["kse_timestamp"] = datetime.now().isoformat()
+            
+            # If data contains campaigns or marketing content, enhance with embeddings
+            if "campaigns" in data:
+                for campaign in data["campaigns"]:
+                    if "name" in campaign:
+                        # Generate embedding for campaign name
+                        embedding = await self.embedding_manager.get_embedding(campaign["name"])
+                        campaign["kse_embedding"] = embedding.tolist()
+            
+            # Store in conceptual memory if org_id is available
+            if "org_id" in data:
+                content = f"Marketing data: {str(data)[:500]}"  # Truncate for storage
+                metadata = {
+                    "data_type": "marketing",
+                    "source": data.get("source", "unknown"),
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+                memory_id = await self.store_with_conceptual_mapping(
+                    org_id=data["org_id"],
+                    content=content,
+                    metadata=metadata,
+                    conceptual_space_id=None
+                )
+                enhanced_data["kse_memory_id"] = memory_id
+            
+            logger.info("Enhanced marketing data with KSE integration")
+            return enhanced_data
+            
+        except Exception as e:
+            logger.error(f"Failed to enhance marketing data: {str(e)}")
+            # Return original data with error flag
+            enhanced_data = data.copy()
+            enhanced_data["kse_enhanced"] = False
+            enhanced_data["kse_error"] = str(e)
+            return enhanced_data
+
     def get_performance_stats(self) -> Dict[str, Any]:
         """Get performance statistics for enhanced KSE operations."""
         with self.lock:
-            success_rate = (self.successful_operations / self.total_operations 
+            success_rate = (self.successful_operations / self.total_operations
                           if self.total_operations > 0 else 0)
             
             recent_operations = list(self.operation_history)[-100:]  # Last 100 operations
-            recent_avg_time = (sum(op.duration_ns for op in recent_operations) / 
+            recent_avg_time = (sum(op.duration_ns for op in recent_operations) /
                              len(recent_operations) if recent_operations else 0)
             
             return {

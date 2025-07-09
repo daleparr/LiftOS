@@ -65,6 +65,11 @@ def render_navigation_menu():
         if st.button("🧠 Knowledge Search", use_container_width=True):
             st.switch_page("pages/5_🧠_Memory_Search.py")
     
+    # Bayesian Analysis - moved up to appear right after Memory Search
+    if feature_flags.get('enable_bayesian', True):
+        if st.button("🎯 Bayesian Analysis", use_container_width=True):
+            st.switch_page("pages/16_Bayesian_Analysis.py")
+    
     # Settings
     if st.button("⚙️ Settings", use_container_width=True):
         st.switch_page("pages/6_⚙️_Settings.py")

@@ -1,6 +1,6 @@
 # LiftOS
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/daleparr/LiftOS) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/daleparr/LiftOS/releases) [![Deployment](https://img.shields.io/badge/deployment-12.3s-green)](http://localhost:8501) [![Performance](https://img.shields.io/badge/speedup-241x-orange)](https://github.com/daleparr/LiftOS)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/daleparr/LiftOS) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/version-1.4.0-blue)](https://github.com/daleparr/LiftOS/releases) [![Deployment](https://img.shields.io/badge/deployment-12.3s-green)](http://localhost:8501) [![Performance](https://img.shields.io/badge/speedup-241x-orange)](https://github.com/daleparr/LiftOS)
 
 > **The Operating System for Causal Growth** - End attribution theatre. Start proving what actually works.
 
@@ -13,6 +13,7 @@
 - [The LiftOS Difference](#the-liftos-difference)
 - [Real-World Impact](#real-world-impact)
 - [Technical Architecture](#technical-architecture)
+- [Data Ingestion Service](#data-ingestion-service)
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
 - [Community](#community)
@@ -365,6 +366,106 @@ Test **Pattern Recognition** to see:
 - **Scalability**: 1,000+ concurrent users
 - **Accuracy**: 92.3% pattern recognition
 - **Uptime**: 99.9% SLA
+
+## Data Ingestion Service
+
+### 16-Platform Integration Architecture
+
+LiftOS includes a comprehensive data ingestion service supporting 16 major marketing and analytics platforms organized in a 4-tier architecture:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Data Ingestion Service v1.4.0               │
+│                        16 Platform Connectors                  │
+├─────────────────────────────────────────────────────────────────┤
+│  Tier 0 - Legacy (3)     │  Tier 1 - E-commerce (3)           │
+│  • Meta Business         │  • Shopify                          │
+│  • Google Ads            │  • WooCommerce                      │
+│  • Klaviyo               │  • Amazon Seller Central            │
+├─────────────────────────────────────────────────────────────────┤
+│  Tier 2 - CRM/Payment (4) │  Tier 3 - Social/Analytics (3)    │
+│  • HubSpot               │  • TikTok                           │
+│  • Salesforce            │  • Snowflake                       │
+│  • Stripe                │  • Databricks                      │
+│  • PayPal                │                                     │
+├─────────────────────────────────────────────────────────────────┤
+│  Tier 4 - Extended (3)   │  Configuration & Management         │
+│  • Zoho CRM              │  • Secure Credential Storage       │
+│  • LinkedIn Ads          │  • Connection Testing              │
+│  • X Ads                 │  • Real-time Sync Status           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Tier 0 - Legacy Platforms (3 connectors)
+- **Meta Business** - Facebook/Instagram advertising data and insights
+- **Google Ads** - Search and display advertising metrics and performance
+- **Klaviyo** - Email marketing automation and customer engagement data
+
+#### Tier 1 - E-commerce Platforms (3 connectors)
+- **Shopify** - Complete e-commerce integration with orders, customers, and products
+- **WooCommerce** - WordPress e-commerce platform with sales and inventory data
+- **Amazon Seller Central** - Amazon marketplace analytics and seller performance
+
+#### Tier 2 - CRM & Payment Systems (4 connectors)
+- **HubSpot** - CRM and marketing automation with lead tracking and nurturing
+- **Salesforce** - Enterprise CRM integration with comprehensive customer data
+- **Stripe** - Payment processing data with transaction and revenue analytics
+- **PayPal** - Payment platform integration with transaction insights
+
+#### Tier 3 - Social & Data Platforms (3 connectors)
+- **TikTok** - Social media advertising data and audience engagement metrics
+- **Snowflake** - Data warehouse integration for advanced analytics and reporting
+- **Databricks** - Advanced analytics platform with machine learning capabilities
+
+#### Tier 4 - Extended Integrations (3 connectors)
+- **Zoho CRM** - Alternative CRM solution with sales pipeline and customer data
+- **LinkedIn Ads** - Professional network advertising with B2B targeting insights
+- **X Ads** - Social media advertising platform with real-time campaign data
+
+### Integration Features
+
+#### Secure Configuration
+- **Credential Management**: Encrypted storage of API keys, OAuth tokens, and credentials
+- **Connection Testing**: Built-in validation for all connector configurations
+- **Real-time Status**: Live monitoring of connection health and sync status
+
+#### Data Processing
+- **Unified Schema**: Standardized data format across all 16 platforms
+- **Real-time Sync**: Live data updates with <100ms processing latency
+- **Error Handling**: Robust error recovery and retry mechanisms
+
+#### API Access
+- **RESTful Endpoints**: Complete API access to all connector data
+- **Batch Operations**: Efficient bulk data retrieval and processing
+- **Rate Limiting**: Intelligent rate limiting to respect platform API limits
+
+### Configuration
+
+All connectors can be configured through the Settings interface at `/settings`, providing:
+- **Secure Setup**: Step-by-step configuration for each platform
+- **Credential Validation**: Real-time testing of API connections
+- **Tier Organization**: Logical grouping by platform categories
+- **Help Documentation**: Inline guidance for each connector setup
+
+### API Endpoints
+
+```python
+# Get all supported platforms
+GET /api/v1/platforms
+# Returns: List of all 16 connectors organized by tier
+
+# Configure connector credentials
+POST /api/v1/connectors/{platform}/configure
+# Configure specific platform credentials
+
+# Test connector connection
+GET /api/v1/connectors/{platform}/test
+# Validate connection and return status
+
+# Sync data from platform
+POST /api/v1/connectors/{platform}/sync
+# Trigger data synchronization
+```
 
 ---
 

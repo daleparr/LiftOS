@@ -25,6 +25,23 @@ st.set_page_config(
     }
 )
 
+def render_main_content():
+    """Render the main content area"""
+    try:
+        # Main content area
+        st.title("LiftOS Hub")
+        st.markdown("### Marketing Intelligence & Causal Analysis Platform")
+        
+        # Welcome message
+        if 'username' in st.session_state:
+            st.success(f"Welcome back, {st.session_state.username}!")
+        
+        # Quick actions
+        render_quick_actions()
+        
+    except Exception as e:
+        st.error(f"Error in render_main_content(): {str(e)}")
+
 def main():
     """Main application entry point"""
     
@@ -41,28 +58,22 @@ def main():
     # Render sidebar navigation
     render_sidebar()
     
-    # Main content area
-    st.title("🚀 LiftOS Hub")
-    st.markdown("### Marketing Intelligence & Causal Analysis Platform")
-    
-    # Welcome message
-    if 'username' in st.session_state:
-        st.success(f"Welcome back, {st.session_state.username}!")
+    # Render main content
+    render_main_content()
     
     # Real-time system health banner
-    render_system_health_banner()
+    # render_system_health_banner()  # Keep commented for now
     
     # Platform architecture overview
-    render_platform_architecture()
+    # render_platform_architecture()  # Keep commented for now
     
     # Quick stats dashboard
-    render_dashboard_overview()
+    # render_dashboard_overview()  # Keep commented for now
     
     # Recent activity
-    render_recent_activity()
+    # render_recent_activity()  # Keep commented for now
     
-    # Quick actions
-    render_quick_actions()
+    # Quick actions moved to render_main_content()
 
 def render_system_health_banner():
     """Render real-time system health banner"""
@@ -270,31 +281,31 @@ def render_quick_actions():
             st.switch_page("pages/1_🧠_Causal_Analysis.py")
     
     with col2:
+        if st.button("🎯 Bayesian Analysis", use_container_width=True, key="qa_bayesian"):
+            st.switch_page("pages/16_🎯_Bayesian_Analysis.py")
+    
+    with col3:
         if st.button("🔍 Data Surfacing", use_container_width=True, key="qa_surfacing"):
             st.switch_page("pages/2_🔍_Surfacing.py")
     
-    with col3:
+    with col4:
         if st.button("📊 System Health", use_container_width=True, key="qa_health"):
             st.switch_page("pages/4_📊_System_Health.py")
-    
-    with col4:
-        if st.button("🤖 AI Assistant", use_container_width=True, key="qa_llm"):
-            st.switch_page("pages/3_🤖_LLM_Assistant.py")
     
     # Second row of quick actions
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
+        if st.button("🤖 AI Assistant", use_container_width=True, key="qa_llm"):
+            st.switch_page("pages/3_🤖_LLM_Assistant.py")
+    
+    with col6:
         if st.button("🧠 Memory Search", use_container_width=True, key="qa_memory"):
             st.switch_page("pages/5_🧠_Memory_Search.py")
     
-    with col6:
+    with col7:
         if st.button("⚙️ Settings", use_container_width=True, key="qa_settings"):
             st.switch_page("pages/6_⚙️_Settings.py")
-    
-    with col7:
-        if st.button("📋 Documentation", use_container_width=True, key="qa_docs"):
-            st.info("📚 Documentation coming soon!")
     
     with col8:
         if st.button("🔄 Refresh Data", use_container_width=True, key="qa_refresh"):

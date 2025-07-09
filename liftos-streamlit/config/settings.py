@@ -6,7 +6,7 @@ def load_config() -> Dict[str, Any]:
     """Load application configuration"""
     return {
         'app_name': 'LiftOS Hub',
-        'version': '1.0.0',
+        'version': '1.4.0',
         'debug': os.getenv('DEBUG', 'false').lower() == 'true',
         'services': get_service_urls(),
         'auth': get_auth_config(),
@@ -48,7 +48,8 @@ def get_feature_flags() -> Dict[str, bool]:
         'enable_observability': os.getenv('ENABLE_OBSERVABILITY', 'true').lower() == 'true',
         'enable_data_transformations': os.getenv('ENABLE_DATA_TRANSFORMATIONS', 'true').lower() == 'true',
         'enable_system_health': os.getenv('ENABLE_SYSTEM_HEALTH', 'true').lower() == 'true',
-        'enable_real_time_monitoring': os.getenv('ENABLE_REAL_TIME_MONITORING', 'true').lower() == 'true'
+        'enable_real_time_monitoring': os.getenv('ENABLE_REAL_TIME_MONITORING', 'true').lower() == 'true',
+        'enable_bayesian': os.getenv('ENABLE_BAYESIAN', 'true').lower() == 'true'
     }
 
 def get_api_timeout() -> int:

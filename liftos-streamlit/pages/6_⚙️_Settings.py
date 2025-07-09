@@ -91,9 +91,268 @@ def main():
             help="Your Klaviyo Private API Key"
         )
         
+        # Shopify API
+        st.subheader("🛍️ Shopify API")
+        shopify_shop_domain = st.text_input(
+            "Shop Domain",
+            value=st.session_state.get('shopify_shop_domain', ''),
+            help="Your Shopify shop domain (e.g., mystore.myshopify.com)"
+        )
+        
+        shopify_access_token = st.text_input(
+            "Access Token",
+            value=st.session_state.get('shopify_access_token', ''),
+            type="password",
+            help="Your Shopify Private App Access Token"
+        )
+        
+        # WooCommerce API
+        st.subheader("🛒 WooCommerce API")
+        woocommerce_url = st.text_input(
+            "Store URL",
+            value=st.session_state.get('woocommerce_url', ''),
+            help="Your WooCommerce store URL"
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            woocommerce_consumer_key = st.text_input(
+                "Consumer Key",
+                value=st.session_state.get('woocommerce_consumer_key', ''),
+                type="password",
+                help="Your WooCommerce Consumer Key"
+            )
+        with col2:
+            woocommerce_consumer_secret = st.text_input(
+                "Consumer Secret",
+                value=st.session_state.get('woocommerce_consumer_secret', ''),
+                type="password",
+                help="Your WooCommerce Consumer Secret"
+            )
+        
+        # Amazon Seller Central API
+        st.subheader("📦 Amazon Seller Central API")
+        col1, col2 = st.columns(2)
+        with col1:
+            amazon_access_key = st.text_input(
+                "Access Key ID",
+                value=st.session_state.get('amazon_access_key', ''),
+                type="password",
+                help="Your Amazon MWS Access Key ID"
+            )
+        with col2:
+            amazon_secret_key = st.text_input(
+                "Secret Access Key",
+                value=st.session_state.get('amazon_secret_key', ''),
+                type="password",
+                help="Your Amazon MWS Secret Access Key"
+            )
+        
+        amazon_seller_id = st.text_input(
+            "Seller ID",
+            value=st.session_state.get('amazon_seller_id', ''),
+            help="Your Amazon Seller ID"
+        )
+        
+        # HubSpot API
+        st.subheader("🎯 HubSpot API")
+        hubspot_api_key = st.text_input(
+            "API Key",
+            value=st.session_state.get('hubspot_api_key', ''),
+            type="password",
+            help="Your HubSpot Private App API Key"
+        )
+        
+        # Salesforce API
+        st.subheader("☁️ Salesforce API")
+        col1, col2 = st.columns(2)
+        with col1:
+            salesforce_username = st.text_input(
+                "Username",
+                value=st.session_state.get('salesforce_username', ''),
+                help="Your Salesforce username"
+            )
+        with col2:
+            salesforce_password = st.text_input(
+                "Password",
+                value=st.session_state.get('salesforce_password', ''),
+                type="password",
+                help="Your Salesforce password"
+            )
+        
+        salesforce_security_token = st.text_input(
+            "Security Token",
+            value=st.session_state.get('salesforce_security_token', ''),
+            type="password",
+            help="Your Salesforce security token"
+        )
+        
+        # Stripe API
+        st.subheader("💳 Stripe API")
+        stripe_secret_key = st.text_input(
+            "Secret Key",
+            value=st.session_state.get('stripe_secret_key', ''),
+            type="password",
+            help="Your Stripe Secret Key"
+        )
+        
+        # PayPal API
+        st.subheader("💰 PayPal API")
+        col1, col2 = st.columns(2)
+        with col1:
+            paypal_client_id = st.text_input(
+                "Client ID",
+                value=st.session_state.get('paypal_client_id', ''),
+                type="password",
+                help="Your PayPal Client ID"
+            )
+        with col2:
+            paypal_client_secret = st.text_input(
+                "Client Secret",
+                value=st.session_state.get('paypal_client_secret', ''),
+                type="password",
+                help="Your PayPal Client Secret"
+            )
+        
+        # TikTok API
+        st.subheader("🎵 TikTok for Business API")
+        tiktok_access_token = st.text_input(
+            "Access Token",
+            value=st.session_state.get('tiktok_access_token', ''),
+            type="password",
+            help="Your TikTok for Business Access Token"
+        )
+        
+        # Snowflake API
+        st.subheader("❄️ Snowflake API")
+        col1, col2 = st.columns(2)
+        with col1:
+            snowflake_account = st.text_input(
+                "Account",
+                value=st.session_state.get('snowflake_account', ''),
+                help="Your Snowflake account identifier"
+            )
+        with col2:
+            snowflake_warehouse = st.text_input(
+                "Warehouse",
+                value=st.session_state.get('snowflake_warehouse', ''),
+                help="Your Snowflake warehouse name"
+            )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            snowflake_username = st.text_input(
+                "Username",
+                value=st.session_state.get('snowflake_username', ''),
+                help="Your Snowflake username"
+            )
+        with col2:
+            snowflake_password = st.text_input(
+                "Password",
+                value=st.session_state.get('snowflake_password', ''),
+                type="password",
+                help="Your Snowflake password"
+            )
+        
+        # Databricks API
+        st.subheader("🧱 Databricks API")
+        databricks_host = st.text_input(
+            "Host",
+            value=st.session_state.get('databricks_host', ''),
+            help="Your Databricks workspace URL"
+        )
+        
+        databricks_token = st.text_input(
+            "Access Token",
+            value=st.session_state.get('databricks_token', ''),
+            type="password",
+            help="Your Databricks Personal Access Token"
+        )
+        
+        # Zoho CRM API
+        st.subheader("📊 Zoho CRM API")
+        zoho_client_id = st.text_input(
+            "Client ID",
+            value=st.session_state.get('zoho_client_id', ''),
+            type="password",
+            help="Your Zoho CRM Client ID"
+        )
+        
+        zoho_client_secret = st.text_input(
+            "Client Secret",
+            value=st.session_state.get('zoho_client_secret', ''),
+            type="password",
+            help="Your Zoho CRM Client Secret"
+        )
+        
+        zoho_refresh_token = st.text_input(
+            "Refresh Token",
+            value=st.session_state.get('zoho_refresh_token', ''),
+            type="password",
+            help="Your Zoho CRM Refresh Token"
+        )
+        
+        # LinkedIn Ads API
+        st.subheader("💼 LinkedIn Ads API")
+        linkedin_client_id = st.text_input(
+            "Client ID",
+            value=st.session_state.get('linkedin_client_id', ''),
+            type="password",
+            help="Your LinkedIn Ads Client ID"
+        )
+        
+        linkedin_client_secret = st.text_input(
+            "Client Secret",
+            value=st.session_state.get('linkedin_client_secret', ''),
+            type="password",
+            help="Your LinkedIn Ads Client Secret"
+        )
+        
+        linkedin_access_token = st.text_input(
+            "Access Token",
+            value=st.session_state.get('linkedin_access_token', ''),
+            type="password",
+            help="Your LinkedIn Ads Access Token"
+        )
+        
+        # X (Twitter) Ads API
+        st.subheader("🐦 X (Twitter) Ads API")
+        col1, col2 = st.columns(2)
+        with col1:
+            x_consumer_key = st.text_input(
+                "Consumer Key",
+                value=st.session_state.get('x_consumer_key', ''),
+                type="password",
+                help="Your X Ads Consumer Key"
+            )
+        with col2:
+            x_consumer_secret = st.text_input(
+                "Consumer Secret",
+                value=st.session_state.get('x_consumer_secret', ''),
+                type="password",
+                help="Your X Ads Consumer Secret"
+            )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            x_access_token = st.text_input(
+                "Access Token",
+                value=st.session_state.get('x_access_token', ''),
+                type="password",
+                help="Your X Ads Access Token"
+            )
+        with col2:
+            x_access_token_secret = st.text_input(
+                "Access Token Secret",
+                value=st.session_state.get('x_access_token_secret', ''),
+                type="password",
+                help="Your X Ads Access Token Secret"
+            )
+        
         # Save API Keys
         if st.button("💾 Save API Configuration", type="primary"):
             # Store in session state (in production, these would be encrypted and stored securely)
+            # Tier 0 (Legacy)
             st.session_state['google_client_id'] = google_client_id
             st.session_state['google_client_secret'] = google_client_secret
             st.session_state['google_refresh_token'] = google_refresh_token
@@ -103,7 +362,47 @@ def main():
             st.session_state['meta_app_secret'] = meta_app_secret
             st.session_state['klaviyo_api_key'] = klaviyo_api_key
             
-            st.success("✅ API configuration saved successfully!")
+            # Tier 1 (E-commerce)
+            st.session_state['shopify_shop_domain'] = shopify_shop_domain
+            st.session_state['shopify_access_token'] = shopify_access_token
+            st.session_state['woocommerce_url'] = woocommerce_url
+            st.session_state['woocommerce_consumer_key'] = woocommerce_consumer_key
+            st.session_state['woocommerce_consumer_secret'] = woocommerce_consumer_secret
+            st.session_state['amazon_access_key'] = amazon_access_key
+            st.session_state['amazon_secret_key'] = amazon_secret_key
+            st.session_state['amazon_seller_id'] = amazon_seller_id
+            
+            # Tier 2 (CRM/Payment)
+            st.session_state['hubspot_api_key'] = hubspot_api_key
+            st.session_state['salesforce_username'] = salesforce_username
+            st.session_state['salesforce_password'] = salesforce_password
+            st.session_state['salesforce_security_token'] = salesforce_security_token
+            st.session_state['stripe_secret_key'] = stripe_secret_key
+            st.session_state['paypal_client_id'] = paypal_client_id
+            st.session_state['paypal_client_secret'] = paypal_client_secret
+            
+            # Tier 3 (Social/Analytics/Data)
+            st.session_state['tiktok_access_token'] = tiktok_access_token
+            st.session_state['snowflake_account'] = snowflake_account
+            st.session_state['snowflake_warehouse'] = snowflake_warehouse
+            st.session_state['snowflake_username'] = snowflake_username
+            st.session_state['snowflake_password'] = snowflake_password
+            st.session_state['databricks_host'] = databricks_host
+            st.session_state['databricks_token'] = databricks_token
+            
+            # Tier 4 (Extended Social/CRM)
+            st.session_state['zoho_client_id'] = zoho_client_id
+            st.session_state['zoho_client_secret'] = zoho_client_secret
+            st.session_state['zoho_refresh_token'] = zoho_refresh_token
+            st.session_state['linkedin_client_id'] = linkedin_client_id
+            st.session_state['linkedin_client_secret'] = linkedin_client_secret
+            st.session_state['linkedin_access_token'] = linkedin_access_token
+            st.session_state['x_consumer_key'] = x_consumer_key
+            st.session_state['x_consumer_secret'] = x_consumer_secret
+            st.session_state['x_access_token'] = x_access_token
+            st.session_state['x_access_token_secret'] = x_access_token_secret
+            
+            st.success("✅ API configuration saved successfully for all 16 connectors!")
             st.rerun()
         
         # Test connections

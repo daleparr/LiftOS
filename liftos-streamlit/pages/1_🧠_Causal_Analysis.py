@@ -46,9 +46,10 @@ def main():
     render_sidebar_controls(api_client)
     
     # Main content tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Data Overview",
         "🎯 Attribution Analysis",
+        "🎯 Bayesian Priors",
         "🧪 Experiments",
         "💰 Budget Optimization",
         "🔄 Pipeline Health"
@@ -61,12 +62,15 @@ def main():
         render_attribution_analysis(api_client)
     
     with tab3:
-        render_experiments(api_client)
+        render_bayesian_priors(api_client)
     
     with tab4:
-        render_budget_optimization(api_client)
+        render_experiments(api_client)
     
     with tab5:
+        render_budget_optimization(api_client)
+    
+    with tab6:
         render_pipeline_health(api_client)
 
 def render_pipeline_status_banner(api_client: APIClient):
@@ -728,6 +732,203 @@ def display_budget_optimization_results():
         st.markdown("#### 📋 Detailed Allocation")
         optimization_df = pd.DataFrame(results['data'])
         st.dataframe(optimization_df, use_container_width=True)
+
+def render_bayesian_priors(api_client: APIClient):
+    """Render Bayesian priors analysis tab"""
+    st.subheader("🎯 Bayesian Prior Analysis")
+    st.markdown("Analyze and update your marketing attribution beliefs with data evidence")
+    
+    # Quick access to full Bayesian Analysis
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.info("💡 For comprehensive Bayesian analysis including free audits and SBC validation, visit the dedicated Bayesian Analysis page.")
+    with col2:
+        if st.button("🚀 Open Bayesian Analysis", type="primary", use_container_width=True):
+            st.switch_page("pages/16_🎯_Bayesian_Analysis.py")
+    
+    st.markdown("---")
+    
+    # Prior conflict detection for current attribution model
+    st.markdown("#### 🔍 Prior-Data Conflict Detection")
+    
+    # Check if we have attribution results to analyze
+    if 'attribution_results' in st.session_state and st.session_state.attribution_results:
+        attribution_data = st.session_state.attribution_results
+        
+        # Extract current attribution values
+        if 'data' in attribution_data:
+            current_attribution = pd.DataFrame(attribution_data['data'])
+            
+            st.markdown("##### Current Attribution Results vs. Your Beliefs")
+            
+            # Prior elicitation interface
+            st.markdown("**Enter your prior beliefs about channel attribution:**")
+            
+            priors = {}
+            for _, row in current_attribution.iterrows():
+                channel = row['channel']
+                current_value = row.get('attribution_value', 0)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.write(f"**{channel}**")
+                    st.write(f"Current: ${current_value:,.0f}")
+                
+                with col2:
+                    prior_belief = st.slider(
+                        f"Your belief ($)",
+                        min_value=0,
+                        max_value=int(current_value * 2),
+                        value=int(current_value),
+                        step=1000,
+                        key=f"prior_{channel}"
+                    )
+                    priors[channel] = prior_belief
+                
+                with col3:
+                    confidence = st.slider(
+                        f"Confidence",
+                        min_value=0.1,
+                        max_value=1.0,
+                        value=0.7,
+                        step=0.1,
+                        key=f"conf_{channel}"
+                    )
+            
+            # Conflict analysis
+            if st.button("🔍 Detect Prior-Data Conflicts", type="secondary", use_container_width=True):
+                with st.spinner("Analyzing conflicts..."):
+                    conflicts = analyze_prior_conflicts(current_attribution, priors)
+                    display_conflict_results(conflicts)
+    else:
+        st.warning("⚠️ Please run attribution analysis first to enable prior conflict detection.")
+        
+        # Demo prior elicitation
+        st.markdown("#### 🎯 Demo: Prior Belief Elicitation")
+        st.info("This is a demonstration of how prior beliefs are captured and analyzed.")
+        
+        demo_channels = ["Meta Ads", "Google Ads", "Email Marketing", "Direct"]
+        demo_priors = {}
+        
+        for channel in demo_channels:
+            col1, col2 = st.columns(2)
+            with col1:
+                demo_priors[f"{channel}_belief"] = st.slider(
+                    f"{channel} Attribution (%)",
+                    min_value=0,
+                    max_value=100,
+                    value=25,
+                    key=f"demo_prior_{channel}"
+                )
+            with col2:
+                demo_priors[f"{channel}_confidence"] = st.slider(
+                    f"{channel} Confidence",
+                    min_value=0.1,
+                    max_value=1.0,
+                    value=0.7,
+                    step=0.1,
+                    key=f"demo_conf_{channel}"
+                )
+        
+        if st.button("🎯 Analyze Demo Priors", type="secondary"):
+            st.success("✅ Demo analysis complete! Visit the full Bayesian Analysis page for real conflict detection.")
+
+def analyze_prior_conflicts(attribution_data: pd.DataFrame, priors: dict) -> dict:
+    """Analyze conflicts between priors and data"""
+    conflicts = []
+    total_impact = 0
+    
+    for _, row in attribution_data.iterrows():
+        channel = row['channel']
+        data_value = row.get('attribution_value', 0)
+        prior_value = priors.get(channel, data_value)
+        
+        # Calculate conflict metrics
+        relative_diff = abs(data_value - prior_value) / max(data_value, 1)
+        
+        if relative_diff > 0.2:  # 20% threshold
+            severity = "strong" if relative_diff > 0.5 else "moderate"
+            impact = abs(data_value - prior_value)
+            total_impact += impact
+            
+            conflicts.append({
+                "channel": channel,
+                "data_value": data_value,
+                "prior_value": prior_value,
+                "relative_difference": relative_diff,
+                "severity": severity,
+                "impact": impact
+            })
+    
+    return {
+        "conflicts": conflicts,
+        "total_conflicts": len(conflicts),
+        "total_impact": total_impact,
+        "severity_summary": {
+            "strong": len([c for c in conflicts if c["severity"] == "strong"]),
+            "moderate": len([c for c in conflicts if c["severity"] == "moderate"])
+        }
+    }
+
+def display_conflict_results(conflict_data: dict):
+    """Display conflict analysis results"""
+    conflicts = conflict_data["conflicts"]
+    
+    if not conflicts:
+        st.success("✅ No significant conflicts detected between your priors and the data!")
+        return
+    
+    st.warning(f"⚠️ {conflict_data['total_conflicts']} conflicts detected")
+    
+    # Summary metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Conflicts", conflict_data["total_conflicts"])
+    with col2:
+        st.metric("Strong Conflicts", conflict_data["severity_summary"]["strong"])
+    with col3:
+        st.metric("Total Impact", f"${conflict_data['total_impact']:,.0f}")
+    
+    # Detailed conflicts
+    st.markdown("##### Detailed Conflict Analysis")
+    
+    for conflict in conflicts:
+        severity_color = "🔴" if conflict["severity"] == "strong" else "🟡"
+        
+        with st.expander(f"{severity_color} {conflict['channel']} - {conflict['severity'].title()} Conflict"):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write(f"**Your Belief:** ${conflict['prior_value']:,.0f}")
+                st.write(f"**Data Shows:** ${conflict['data_value']:,.0f}")
+                st.write(f"**Difference:** {conflict['relative_difference']:.1%}")
+            
+            with col2:
+                st.write(f"**Severity:** {conflict['severity'].title()}")
+                st.write(f"**Impact:** ${conflict['impact']:,.0f}")
+                
+                if conflict["data_value"] > conflict["prior_value"]:
+                    st.info("💡 Data suggests this channel is more valuable than you believed")
+                else:
+                    st.info("💡 Data suggests this channel is less valuable than you believed")
+    
+    # Recommendations
+    st.markdown("##### 🎯 Recommendations")
+    
+    strong_conflicts = [c for c in conflicts if c["severity"] == "strong"]
+    if strong_conflicts:
+        st.error("🚨 **Strong conflicts detected** - Consider updating your attribution model")
+        for conflict in strong_conflicts:
+            st.write(f"• **{conflict['channel']}**: Consider {'increasing' if conflict['data_value'] > conflict['prior_value'] else 'decreasing'} attribution weight")
+    
+    moderate_conflicts = [c for c in conflicts if c["severity"] == "moderate"]
+    if moderate_conflicts:
+        st.warning("⚠️ **Moderate conflicts** - Monitor these channels closely")
+        for conflict in moderate_conflicts:
+            st.write(f"• **{conflict['channel']}**: Minor adjustment may be beneficial")
+    
+    # Link to full analysis
+    st.info("🔬 For advanced Bayesian updating and SBC validation, visit the full Bayesian Analysis page.")
 
 # Mock data generators for demo purposes
 def generate_mock_platform_data(platform: str) -> list:

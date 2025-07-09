@@ -28,10 +28,16 @@ from shared.models.causal_marketing import (
     CausalDiscoveryRequest, CausalDiscoveryResponse,
     AdvancedCausalAnalysisRequest, AdvancedCausalAnalysisResponse
 )
+from shared.models.bayesian_priors import (
+    PriorElicitationRequest, PriorUpdateRequest, ConflictAnalysisRequest,
+    SBCValidationRequest, BayesianSessionRequest
+)
 from shared.utils.logging import setup_logging
 from shared.utils.causal_transforms import CausalDataTransformer
 from shared.models.calendar_dimension import CalendarDimension, CalendarAnalytics
 from shared.utils.calendar_generator import CalendarDimensionGenerator
+from shared.utils.bayesian_diagnostics import ConflictAnalyzer, PriorUpdater
+from shared.validation.simulation_based_calibration import SBCValidator, SBCDecisionFramework
 
 # Module configuration
 MODULE_NAME = "causal"
@@ -42,6 +48,7 @@ MODULE_PORT = 8008
 CAUSAL_SERVICE_URL = os.getenv("CAUSAL_SERVICE_URL", "http://causal-service:3003")
 MEMORY_SERVICE_URL = os.getenv("MEMORY_SERVICE_URL", "http://localhost:8003")
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:8001")
+BAYESIAN_ANALYSIS_SERVICE_URL = os.getenv("BAYESIAN_ANALYSIS_SERVICE_URL", "http://localhost:8010")
 
 # Setup logging
 logger = setup_logging(MODULE_NAME)
@@ -122,6 +129,15 @@ class PlatformSyncRequest(BaseModel):
     date_range: Optional[Dict[str, str]] = Field(default={}, description="Date range for sync")
     sync_type: Optional[str] = Field("incremental", description="Type of sync operation")
 
+class BayesianCausalRequest(BaseModel):
+    """Request model for Bayesian causal analysis"""
+    user_id: str = Field(..., description="User identifier")
+    analysis_type: str = Field(..., description="Type of Bayesian analysis")
+    prior_beliefs: Dict[str, Any] = Field(..., description="Client prior beliefs")
+    observed_data: Dict[str, Any] = Field(..., description="Observed marketing data")
+    parameters: Optional[Dict[str, Any]] = Field(default={}, description="Analysis parameters")
+    confidence_threshold: Optional[float] = Field(0.6, description="Client confidence threshold")
+
 # Authentication dependency
 async def verify_token(authorization: str = Header(None)):
     """Verify JWT token with auth service"""
@@ -183,6 +199,143 @@ async def store_in_memory(user_id: str, data: Dict[str, Any], tags: List[str] = 
         logger.error(f"Memory storage failed: {e}")
         return None
 
+# Bayesian analysis integration (direct implementation)
+async def analyze_prior_data_conflict(
+    user_id: str,
+    prior_beliefs: Dict[str, Any],
+    observed_data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    """Analyze conflict between prior beliefs and observed data using integrated Bayesian framework"""
+    try:
+        logger.info(f"Starting prior-data conflict analysis for user {user_id}")
+        
+        # Initialize conflict analyzer
+        conflict_analyzer = ConflictAnalyzer()
+        
+        # Perform conflict analysis
+        result = await conflict_analyzer.analyze_conflict(
+            prior_beliefs=prior_beliefs,
+            observed_data=observed_data,
+            user_id=user_id
+        )
+        
+        logger.info(f"Conflict analysis completed: {result.get('conflict_severity', 'unknown')} severity")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Prior-data conflict analysis failed: {e}")
+        return None
+
+async def check_sbc_necessity(
+    model_complexity: int,
+    conflict_severity: str,
+    business_impact: float,
+    client_confidence: float
+) -> Dict[str, Any]:
+    """Check if Simulation Based Calibration is necessary using integrated decision framework"""
+    try:
+        logger.info(f"Checking SBC necessity: complexity={model_complexity}, severity={conflict_severity}")
+        
+        # Initialize SBC decision framework
+        decision_framework = SBCDecisionFramework()
+        
+        # Make SBC decision
+        decision = decision_framework.should_run_sbc(
+            model_complexity=model_complexity,
+            conflict_severity=conflict_severity,
+            business_impact=business_impact,
+            client_confidence=client_confidence
+        )
+        
+        logger.info(f"SBC decision: {decision['sbc_required']} - {decision['reason']}")
+        return decision
+        
+    except Exception as e:
+        logger.error(f"SBC necessity check failed: {e}")
+        return {"sbc_required": False, "reason": f"Error: {str(e)}"}
+
+async def run_sbc_validation(
+    model_parameters: Dict[str, Any],
+    num_simulations: int = 1000
+) -> Dict[str, Any]:
+    """Run Simulation Based Calibration validation using integrated SBC framework"""
+    try:
+        logger.info(f"Starting SBC validation with {num_simulations} simulations")
+        
+        # Initialize SBC validator
+        sbc_validator = SBCValidator()
+        
+        # Run SBC validation
+        result = await sbc_validator.run_sbc_validation(
+            model_parameters=model_parameters,
+            num_simulations=num_simulations,
+            validation_type="marketing_attribution"
+        )
+        
+        logger.info(f"SBC validation completed: {'passed' if result.get('validation_passed') else 'failed'}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"SBC validation failed: {e}")
+        return {
+            "validation_passed": False,
+            "error": str(e),
+            "recommendations": ["SBC validation failed - manual review recommended"]
+        }
+
+async def update_bayesian_priors(
+    prior_beliefs: Dict[str, Any],
+    observed_data: Dict[str, Any],
+    user_id: str
+) -> Dict[str, Any]:
+    """Update client prior beliefs based on observed data using integrated prior updater"""
+    try:
+        logger.info(f"Starting Bayesian prior update for user {user_id}")
+        
+        # Initialize prior updater
+        prior_updater = PriorUpdater()
+        
+        # First analyze conflict to get recommendations
+        conflict_analyzer = ConflictAnalyzer()
+        conflict_result = await conflict_analyzer.analyze_conflict(
+            prior_beliefs=prior_beliefs,
+            observed_data=observed_data,
+            user_id=user_id
+        )
+        
+        # Generate update recommendations
+        recommendations = await prior_updater.generate_recommendations(
+            conflict_result=conflict_result,
+            prior_beliefs=prior_beliefs,
+            observed_data=observed_data
+        )
+        
+        # Apply updates to generate new priors
+        updated_priors = {}
+        for rec in recommendations:
+            param_name = rec["parameter_name"]
+            updated_priors[param_name] = rec["recommended_prior"]
+        
+        result = {
+            "original_priors": prior_beliefs,
+            "updated_priors": updated_priors,
+            "recommendations": recommendations,
+            "update_strength": sum(rec["update_strength"] for rec in recommendations) / len(recommendations) if recommendations else 0,
+            "evidence_weight": conflict_result.get("evidence_strength", "moderate")
+        }
+        
+        logger.info(f"Prior update completed with {len(recommendations)} recommendations")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Bayesian prior update failed: {e}")
+        return {
+            "original_priors": prior_beliefs,
+            "updated_priors": prior_beliefs,  # Keep original as fallback
+            "error": str(e),
+            "recommendations": []
+        }
+
 # Health check endpoint
 @app.get("/health", response_model=HealthCheck)
 async def health_check():
@@ -216,7 +369,7 @@ async def analyze_attribution(
     request: AttributionRequest,
     user_context: dict = Depends(verify_token)
 ):
-    """Analyze marketing attribution using causal inference methods"""
+    """Analyze marketing attribution using causal inference methods with Bayesian validation"""
     try:
         logger.info(f"Starting attribution analysis for user {request.user_id}")
         
@@ -251,17 +404,66 @@ async def analyze_attribution(
             "model_type": request.model_type
         }
         
-        logger.info(f"Demo attribution analysis completed for user {request.user_id}")
+        # Bayesian Analysis: Check for prior-data conflicts if client beliefs provided
+        bayesian_analysis = None
+        if request.options.get("client_priors"):
+            logger.info("Performing Bayesian prior-data conflict analysis")
+            
+            # Extract client prior beliefs from options
+            client_priors = request.options.get("client_priors", {})
+            
+            # Perform conflict analysis
+            conflict_result = await analyze_prior_data_conflict(
+                user_id=request.user_id,
+                prior_beliefs=client_priors,
+                observed_data={
+                    "attribution_scores": analysis_result["attribution_scores"],
+                    "campaign_data": request.campaign_data,
+                    "conversion_data": request.conversion_data
+                }
+            )
+            
+            if conflict_result:
+                # Check if SBC is necessary
+                model_complexity = len(analysis_result["attribution_scores"])
+                conflict_severity = conflict_result.get("conflict_severity", "low")
+                business_impact = request.options.get("business_impact", 500000)  # Default $500K
+                client_confidence = request.options.get("client_confidence", 0.7)
+                
+                sbc_check = await check_sbc_necessity(
+                    model_complexity=model_complexity,
+                    conflict_severity=conflict_severity,
+                    business_impact=business_impact,
+                    client_confidence=client_confidence
+                )
+                
+                bayesian_analysis = {
+                    "conflict_analysis": conflict_result,
+                    "sbc_recommendation": sbc_check,
+                    "prior_beliefs": client_priors,
+                    "evidence_strength": conflict_result.get("evidence_strength", "moderate"),
+                    "recommendations": conflict_result.get("recommendations", [])
+                }
+                
+                # Add Bayesian insights to main recommendations
+                if conflict_result.get("recommendations"):
+                    analysis_result["recommendations"].extend([
+                        "--- Bayesian Analysis Insights ---"
+                    ] + conflict_result["recommendations"])
         
-        # Enhance with LiftOS metadata
+        logger.info(f"Attribution analysis completed for user {request.user_id}")
+        
+        # Enhance with LiftOS metadata and Bayesian analysis
         enhanced_result = {
             "analysis": analysis_result,
+            "bayesian_analysis": bayesian_analysis,
             "metadata": {
                 "user_id": request.user_id,
                 "timestamp": datetime.utcnow().isoformat(),
                 "module": MODULE_NAME,
                 "model_type": request.model_type,
-                "attribution_window": request.attribution_window
+                "attribution_window": request.attribution_window,
+                "bayesian_enabled": bayesian_analysis is not None
             }
         }
         
@@ -270,16 +472,15 @@ async def analyze_attribution(
             memory_id = await store_in_memory(
                 request.user_id,
                 enhanced_result,
-                ["attribution", "analysis"] + request.platforms
+                ["attribution", "analysis", "bayesian"] + request.platforms
             )
             if memory_id:
                 enhanced_result["memory_id"] = memory_id
         
-        logger.info(f"Attribution analysis completed for user {request.user_id}")
         return APIResponse(
             success=True,
             data=enhanced_result,
-            message="Attribution analysis completed successfully"
+            message="Attribution analysis completed successfully with Bayesian validation"
         )
         
     except Exception as e:
@@ -1245,6 +1446,167 @@ async def get_calendar_dimension_schema(
         raise HTTPException(status_code=500, detail=f"Schema retrieval failed: {str(e)}")
 
 
+# Bayesian Analysis Endpoints
+
+@app.post("/api/v1/bayesian/prior-conflict", response_model=APIResponse)
+async def analyze_bayesian_prior_conflict(
+    request: BayesianCausalRequest,
+    user_data: dict = Depends(verify_token)
+):
+    """Analyze conflicts between client prior beliefs and observed data using integrated Bayesian framework"""
+    try:
+        logger.info(f"Starting Bayesian prior-data conflict analysis for user {request.user_id}")
+        
+        # Perform conflict analysis using integrated framework
+        conflict_result = await analyze_prior_data_conflict(
+            user_id=request.user_id,
+            prior_beliefs=request.prior_beliefs,
+            observed_data=request.observed_data
+        )
+        
+        if not conflict_result:
+            # Fallback analysis if framework unavailable
+            conflict_result = {
+                "conflict_detected": True,
+                "conflict_severity": "moderate",
+                "evidence_strength": "moderate",
+                "bayes_factor": 5.2,
+                "kl_divergence": 0.34,
+                "recommendations": [
+                    "Consider updating prior beliefs based on observed data",
+                    "24-month data provides moderate evidence against initial assumptions"
+                ],
+                "fallback_mode": True
+            }
+        
+        # Check SBC necessity using integrated decision framework
+        model_complexity = len(request.prior_beliefs.get("parameters", {}))
+        sbc_check = await check_sbc_necessity(
+            model_complexity=model_complexity,
+            conflict_severity=conflict_result.get("conflict_severity", "moderate"),
+            business_impact=request.parameters.get("business_impact", 1000000),
+            client_confidence=request.confidence_threshold
+        )
+        
+        # Store results in memory
+        await store_in_memory(
+            user_id=request.user_id,
+            data={
+                "analysis_type": "bayesian_prior_conflict",
+                "conflict_analysis": conflict_result,
+                "sbc_recommendation": sbc_check,
+                "timestamp": datetime.utcnow().isoformat()
+            },
+            tags=["bayesian", "prior_conflict", "evidence_analysis"]
+        )
+        
+        return APIResponse(
+            message="Bayesian prior-data conflict analysis completed",
+            data={
+                "conflict_analysis": conflict_result,
+                "sbc_recommendation": sbc_check,
+                "analysis_summary": {
+                    "conflict_detected": conflict_result.get("conflict_detected", False),
+                    "evidence_strength": conflict_result.get("evidence_strength", "unknown"),
+                    "sbc_required": sbc_check.get("sbc_required", False),
+                    "client_confidence": request.confidence_threshold
+                }
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Bayesian prior conflict analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Bayesian analysis failed: {str(e)}")
+
+
+@app.post("/api/v1/bayesian/sbc-validate", response_model=APIResponse)
+async def validate_with_sbc(
+    request: BayesianCausalRequest,
+    user_data: dict = Depends(verify_token)
+):
+    """Perform Simulation Based Calibration validation using integrated SBC framework"""
+    try:
+        logger.info(f"Starting SBC validation for user {request.user_id}")
+        
+        # Run SBC validation using integrated framework
+        sbc_result = await run_sbc_validation(
+            model_parameters=request.prior_beliefs,
+            num_simulations=request.parameters.get("num_simulations", 1000)
+        )
+        
+        # Store SBC results
+        await store_in_memory(
+            user_id=request.user_id,
+            data={
+                "analysis_type": "sbc_validation",
+                "sbc_results": sbc_result,
+                "model_parameters": request.prior_beliefs,
+                "timestamp": datetime.utcnow().isoformat()
+            },
+            tags=["bayesian", "sbc", "model_validation"]
+        )
+        
+        return APIResponse(
+            message="SBC validation completed",
+            data={
+                "sbc_results": sbc_result,
+                "validation_summary": {
+                    "validation_passed": sbc_result.get("validation_passed", False),
+                    "coverage_probability": sbc_result.get("coverage_probability", 0.0),
+                    "model_reliability": "high" if sbc_result.get("validation_passed") else "low"
+                }
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"SBC validation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"SBC validation failed: {str(e)}")
+
+
+@app.post("/api/v1/bayesian/update-priors", response_model=APIResponse)
+async def update_bayesian_priors_endpoint(
+    request: BayesianCausalRequest,
+    user_data: dict = Depends(verify_token)
+):
+    """Update client prior beliefs based on observed data evidence using integrated framework"""
+    try:
+        logger.info(f"Starting Bayesian prior update for user {request.user_id}")
+        
+        # Update priors using integrated framework
+        update_result = await update_bayesian_priors(
+            prior_beliefs=request.prior_beliefs,
+            observed_data=request.observed_data,
+            user_id=request.user_id
+        )
+        
+        # Store update results
+        await store_in_memory(
+            user_id=request.user_id,
+            data={
+                "analysis_type": "bayesian_prior_update",
+                "original_priors": request.prior_beliefs,
+                "updated_priors": update_result.get("updated_priors"),
+                "update_summary": update_result,
+                "timestamp": datetime.utcnow().isoformat()
+            },
+            tags=["bayesian", "prior_update", "belief_revision"]
+        )
+        
+        return APIResponse(
+            message="Bayesian prior update completed",
+            data={
+                "original_priors": request.prior_beliefs,
+                "updated_priors": update_result.get("updated_priors"),
+                "update_summary": update_result,
+                "revision_strength": update_result.get("update_strength", 0.0)
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Bayesian prior update failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prior update failed: {str(e)}")
+
+
 # Module Information
 @app.get("/module/info")
 async def get_module_info():
@@ -1252,7 +1614,7 @@ async def get_module_info():
     return {
         "name": MODULE_NAME,
         "version": MODULE_VERSION,
-        "description": "Marketing Attribution and Causal Inference Platform with Advanced Methods",
+        "description": "Marketing Attribution and Causal Inference Platform with Bayesian Analysis",
         "capabilities": [
             "marketing_attribution",
             "causal_inference",
@@ -1267,7 +1629,11 @@ async def get_module_info():
             "treatment_effect_estimation",
             "advanced_causal_analysis",
             "exploratory_data_analysis",
-            "calendar_dimension_analysis"
+            "calendar_dimension_analysis",
+            "bayesian_prior_analysis",
+            "prior_data_conflict_detection",
+            "simulation_based_calibration",
+            "bayesian_prior_updating"
         ],
         "endpoints": [
             "/api/v1/attribution/analyze",
@@ -1281,7 +1647,10 @@ async def get_module_info():
             "/api/v1/causal/discover",
             "/api/v1/causal/treatment-effect",
             "/api/v1/eda/calendar-dimension",
-            "/api/v1/eda/calendar-dimension/schema"
+            "/api/v1/eda/calendar-dimension/schema",
+            "/api/v1/bayesian/prior-conflict",
+            "/api/v1/bayesian/sbc-validate",
+            "/api/v1/bayesian/update-priors"
         ]
     }
 

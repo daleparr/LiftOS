@@ -16,7 +16,7 @@ from ..models.causal_marketing import (
     CalendarDimension, TreatmentType, RandomizationUnit,
     DataQualityAssessment, CausalGraph
 )
-from ..models.marketing import DataSource
+from ..models.marketing import DataSource, CampaignObjective, AdStatus
 from ..utils.logging import get_logger
 
 logger = get_logger(__name__)

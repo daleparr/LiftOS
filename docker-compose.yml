@@ -32,6 +32,31 @@ services:
       timeout: 10s
       retries: 3
 
+  # Bayesian Analysis Service (Hybrid Architecture)
+  bayesian-analysis:
+    build:
+      context: .
+      dockerfile: services/bayesian-analysis/Dockerfile
+    ports:
+      - "8010:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CAUSAL_SERVICE_URL=http://causal:8008
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./shared:/app/shared:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Core Services
   gateway:
     build:
