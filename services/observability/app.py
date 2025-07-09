@@ -30,6 +30,11 @@ import numpy as np
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 from shared.models.base import APIResponse, HealthCheck
 from shared.database.observability_models import (
     MetricEntry, LogEntry, HealthCheckEntry, AlertEntry,
@@ -56,6 +61,22 @@ health_checker = HealthChecker("observability")
 db_manager = DatabaseManager()
 
 # FastAPI app
+
+# KSE Client for intelligence integration
+kse_client = None
+
+async def initialize_kse_client():
+    """Initialize KSE client for intelligence integration"""
+    global kse_client
+    try:
+        kse_client = LiftKSEClient()
+        print("KSE Client initialized successfully")
+        return True
+    except Exception as e:
+        print(f"KSE Client initialization failed: {e}")
+        kse_client = None
+        return False
+
 app = FastAPI(
     title="LiftOS Enhanced Observability Service",
     description="Comprehensive metrics, monitoring, and observability with time-series storage",

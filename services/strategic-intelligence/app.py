@@ -21,9 +21,10 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from shared.models.business import (
-    CompetitiveIntelligence, MarketIntelligence, BusinessMetric, 
+    CompetitiveIntelligence, MarketIntelligence, BusinessMetric,
     MetricType, MetricFrequency
 )
+from shared.kse_sdk.client import LiftKSEClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -126,14 +127,26 @@ class StrategicIntelligenceEngine:
         self.data_sources: Dict[str, Dict[str, Any]] = {}
         self.intelligence_confidence: Dict[str, float] = {}
         
+        # KSE integration for universal intelligence substrate
+        self.kse_client = LiftKSEClient()
+        self.latest_strategic_insights = []
+        self.latest_competitive_analysis = []
+        self.latest_market_intelligence = {}
+        
     async def analyze_competitive_landscape(self, analysis_data: Dict[str, Any]) -> CompetitiveIntelligence:
-        """Analyze competitive landscape and positioning"""
+        """Analyze competitive landscape and positioning with KSE intelligence enhancement"""
         try:
             competitor_name = analysis_data.get('competitor_name')
             if not competitor_name:
                 raise ValueError("competitor_name is required")
             
-            # Extract performance data
+            # Retrieve strategic intelligence from KSE for competitive analysis enhancement
+            strategic_intelligence = await self.retrieve_strategic_intelligence(
+                query=f"competitive analysis {competitor_name} market positioning strategic insights",
+                domain="strategic"
+            )
+            
+            # Extract performance data with KSE enhancement
             our_performance = analysis_data.get('our_performance', 0.0)
             competitor_performance = analysis_data.get('competitor_performance', 0.0)
             performance_gap = competitor_performance - our_performance
@@ -142,13 +155,24 @@ class StrategicIntelligenceEngine:
             our_market_share = analysis_data.get('our_market_share', 0.0)
             competitor_market_share = analysis_data.get('competitor_market_share', 0.0)
             
-            # SWOT analysis
+            # SWOT analysis enhanced with KSE insights
             strengths = analysis_data.get('strengths', [])
             weaknesses = analysis_data.get('weaknesses', [])
             opportunities = analysis_data.get('opportunities', [])
             threats = analysis_data.get('threats', [])
             
-            # Create competitive intelligence
+            # Enhance SWOT with KSE strategic intelligence
+            kse_opportunities = strategic_intelligence.get('strategic_opportunities', [])
+            kse_risks = strategic_intelligence.get('risk_indicators', [])
+            
+            if kse_opportunities:
+                opportunities.extend(kse_opportunities[:3])  # Add top 3 KSE opportunities
+            if kse_risks:
+                threats.extend(kse_risks[:3])  # Add top 3 KSE risk indicators
+            
+            # Create competitive intelligence with enhanced confidence
+            enhanced_confidence = min(0.95, analysis_data.get('confidence', 0.7) + 0.15)  # Boost confidence with KSE
+            
             competitive_intel = CompetitiveIntelligence(
                 competitor_name=competitor_name,
                 our_performance=our_performance,
@@ -160,8 +184,8 @@ class StrategicIntelligenceEngine:
                 weaknesses=weaknesses,
                 opportunities=opportunities,
                 threats=threats,
-                source=analysis_data.get('source', 'internal_analysis'),
-                confidence=analysis_data.get('confidence', 0.7)
+                source=f"{analysis_data.get('source', 'internal_analysis')}_kse_enhanced",
+                confidence=enhanced_confidence
             )
             
             self.competitive_intelligence[competitive_intel.id] = competitive_intel
@@ -171,16 +195,153 @@ class StrategicIntelligenceEngine:
                 'timestamp': datetime.utcnow(),
                 'competitor': competitor_name,
                 'performance_gap': performance_gap,
-                'market_share_gap': competitor_market_share - our_market_share
+                'market_share_gap': competitor_market_share - our_market_share,
+                'kse_enhanced': True,
+                'strategic_insights_count': len(strategic_intelligence.get('competitive_insights', []))
             }
             self.competitive_position_history.append(position_data)
             
-            logger.info(f"Analyzed competitive landscape for {competitor_name}: {performance_gap:.2f} performance gap")
+            # Update latest analysis for enrichment
+            self.latest_competitive_analysis = [competitive_intel.dict() if hasattr(competitive_intel, 'dict') else str(competitive_intel)]
+            self.latest_strategic_insights = strategic_intelligence.get('competitive_insights', [])
+            
+            # Enrich intelligence layer with competitive analysis
+            enrichment_data = {
+                'domain': 'strategic',
+                'analysis_type': 'competitive',
+                'competitor': competitor_name,
+                'competitive_insights': self.latest_competitive_analysis,
+                'market_intelligence': [{
+                    'market_segment': analysis_data.get('market_segment', 'general'),
+                    'performance_gap': performance_gap,
+                    'market_share_gap': competitor_market_share - our_market_share,
+                    'confidence': enhanced_confidence,
+                    'kse_enhancement': {
+                        'opportunities_added': len(kse_opportunities),
+                        'risks_identified': len(kse_risks),
+                        'insights_leveraged': len(strategic_intelligence.get('competitive_insights', []))
+                    }
+                }]
+            }
+            
+            await self.enrich_strategic_intelligence_layer(
+                enrichment_data,
+                trace_id=f"competitive_{competitor_name}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+            )
+            
+            logger.info(f"KSE-enhanced competitive analysis for {competitor_name}: {performance_gap:.2f} performance gap, {enhanced_confidence:.2f} confidence")
             return competitive_intel
             
         except Exception as e:
             logger.error(f"Error analyzing competitive landscape: {e}")
             raise
+    
+    async def retrieve_strategic_intelligence(self, query: str, domain: str = "strategic") -> Dict[str, Any]:
+        """Retrieve strategic intelligence data from KSE universal substrate"""
+        try:
+            # Use KSE hybrid search for comprehensive strategic intelligence retrieval
+            results = await self.kse_client.hybrid_search(
+                query=query,
+                domain=domain,
+                limit=20,
+                include_embeddings=True,
+                include_concepts=True,
+                include_knowledge_graph=True
+            )
+            
+            # Extract strategic intelligence insights from KSE results
+            strategic_intelligence = {
+                'competitive_insights': [],
+                'market_trends': [],
+                'strategic_opportunities': [],
+                'risk_indicators': [],
+                'recommendations': [],
+                'confidence_scores': []
+            }
+            
+            for result in results:
+                if 'competitive_insights' in result:
+                    strategic_intelligence['competitive_insights'].extend(result['competitive_insights'])
+                if 'market_trends' in result:
+                    strategic_intelligence['market_trends'].extend(result['market_trends'])
+                if 'strategic_opportunities' in result:
+                    strategic_intelligence['strategic_opportunities'].extend(result['strategic_opportunities'])
+                if 'risk_indicators' in result:
+                    strategic_intelligence['risk_indicators'].extend(result['risk_indicators'])
+                if 'recommendations' in result:
+                    strategic_intelligence['recommendations'].extend(result['recommendations'])
+                if 'confidence' in result:
+                    strategic_intelligence['confidence_scores'].append(result['confidence'])
+            
+            self.latest_market_intelligence = strategic_intelligence
+            return strategic_intelligence
+            
+        except Exception as e:
+            logger.error(f"Failed to retrieve strategic intelligence: {e}")
+            return {}
+    
+    async def enrich_strategic_intelligence_layer(self, data: Dict[str, Any], trace_id: str = None) -> bool:
+        """Write back strategic insights, competitive analysis, and market intelligence to enrich KSE intelligence layer"""
+        try:
+            import uuid
+            
+            # Create comprehensive trace for strategic intelligence enrichment
+            trace_data = {
+                'service': 'strategic-intelligence',
+                'timestamp': datetime.utcnow().isoformat(),
+                'trace_id': trace_id or str(uuid.uuid4()),
+                'operation': 'strategic_intelligence_processing',
+                'data': data,
+                'competitive_analyses': len(self.competitive_intelligence),
+                'market_intelligence_reports': len(self.market_intelligence),
+                'strategic_insights': self.latest_strategic_insights,
+                'competitive_analysis': self.latest_competitive_analysis
+            }
+            
+            # Store trace in KSE for intelligence layer enrichment
+            await self.kse_client.store_trace(trace_data)
+            
+            # Store competitive insights as entities for future intelligence retrieval
+            if 'competitive_insights' in data:
+                for insight in data['competitive_insights']:
+                    entity_data = {
+                        'type': 'competitive_insight',
+                        'domain': data.get('domain', 'strategic'),
+                        'content': insight,
+                        'confidence': insight.get('confidence', 0.8) if isinstance(insight, dict) else 0.8,
+                        'source': 'strategic_intelligence',
+                        'metadata': {
+                            'competitor': insight.get('competitor', 'unknown') if isinstance(insight, dict) else 'unknown',
+                            'analysis_type': data.get('analysis_type', 'competitive'),
+                            'discovery_time': datetime.utcnow().isoformat(),
+                            'trace_id': trace_data['trace_id']
+                        }
+                    }
+                    await self.kse_client.store_entity(entity_data)
+            
+            # Store market intelligence for future strategic analysis
+            if 'market_intelligence' in data:
+                for intelligence in data['market_intelligence']:
+                    entity_data = {
+                        'type': 'market_intelligence',
+                        'domain': data.get('domain', 'strategic'),
+                        'content': intelligence,
+                        'confidence': intelligence.get('confidence', 0.8) if isinstance(intelligence, dict) else 0.8,
+                        'source': 'strategic_intelligence',
+                        'metadata': {
+                            'market_segment': intelligence.get('market_segment', 'general') if isinstance(intelligence, dict) else 'general',
+                            'intelligence_type': data.get('intelligence_type', 'market'),
+                            'trace_id': trace_data['trace_id']
+                        }
+                    }
+                    await self.kse_client.store_entity(entity_data)
+            
+            logger.info(f"Successfully enriched strategic intelligence layer with trace {trace_data['trace_id']}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to enrich strategic intelligence layer: {e}")
+            return False
     
     async def analyze_market_intelligence(self, market_data: Dict[str, Any]) -> MarketIntelligence:
         """Analyze market trends and intelligence"""

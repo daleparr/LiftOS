@@ -18,6 +18,11 @@ import json
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 
 from shared.models.business import BusinessMetric, MetricType, MetricFrequency
 
@@ -480,6 +485,22 @@ async def lifespan(app: FastAPI):
     logger.info("User Analytics Service shutting down...")
 
 # Create FastAPI app
+
+# KSE Client for intelligence integration
+kse_client = None
+
+async def initialize_kse_client():
+    """Initialize KSE client for intelligence integration"""
+    global kse_client
+    try:
+        kse_client = LiftKSEClient()
+        print("KSE Client initialized successfully")
+        return True
+    except Exception as e:
+        print(f"KSE Client initialization failed: {e}")
+        kse_client = None
+        return False
+
 app = FastAPI(
     title="LiftOS User Analytics Service",
     description="Comprehensive user behavior tracking and analysis",

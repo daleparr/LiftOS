@@ -25,6 +25,7 @@ from shared.models.business import (
     BusinessDashboard, BusinessReport, BusinessAlert, BusinessMetric,
     MetricType, MetricFrequency
 )
+from shared.kse_sdk.client import LiftKSEClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -84,6 +85,12 @@ class BusinessIntelligenceEngine:
         # Real-time data
         self.real_time_metrics: Dict[str, Any] = {}
         self.metric_history: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        
+        # KSE integration for universal intelligence substrate
+        self.kse_client = LiftKSEClient()
+        self.latest_insights = []
+        self.latest_patterns = []
+        self.latest_business_intelligence = {}
         
     async def create_dashboard(self, dashboard_config: Dict[str, Any]) -> BusinessDashboard:
         """Create a new business dashboard"""
@@ -173,27 +180,148 @@ class BusinessIntelligenceEngine:
             logger.error(f"Error fetching data from {service_name}: {e}")
             return {"error": str(e)}
     
+    async def retrieve_business_intelligence(self, query: str, domain: str = "business") -> Dict[str, Any]:
+        """Retrieve business intelligence data from KSE universal substrate"""
+        try:
+            # Use KSE hybrid search for comprehensive business intelligence retrieval
+            results = await self.kse_client.hybrid_search(
+                query=query,
+                domain=domain,
+                limit=15,
+                include_embeddings=True,
+                include_concepts=True,
+                include_knowledge_graph=True
+            )
+            
+            # Extract business intelligence insights from KSE results
+            business_intelligence = {
+                'metrics': [],
+                'patterns': [],
+                'trends': [],
+                'insights': [],
+                'recommendations': [],
+                'confidence_scores': []
+            }
+            
+            for result in results:
+                if 'metrics' in result:
+                    business_intelligence['metrics'].extend(result['metrics'])
+                if 'patterns' in result:
+                    business_intelligence['patterns'].extend(result['patterns'])
+                if 'trends' in result:
+                    business_intelligence['trends'].extend(result['trends'])
+                if 'insights' in result:
+                    business_intelligence['insights'].extend(result['insights'])
+                if 'recommendations' in result:
+                    business_intelligence['recommendations'].extend(result['recommendations'])
+                if 'confidence' in result:
+                    business_intelligence['confidence_scores'].append(result['confidence'])
+            
+            self.latest_business_intelligence = business_intelligence
+            return business_intelligence
+            
+        except Exception as e:
+            logger.error(f"Failed to retrieve business intelligence: {e}")
+            return {}
+    
+    async def enrich_business_intelligence_layer(self, data: Dict[str, Any], trace_id: str = None) -> bool:
+        """Write back business insights, dashboards, and analytics to enrich KSE intelligence layer"""
+        try:
+            import uuid
+            
+            # Create comprehensive trace for business intelligence enrichment
+            trace_data = {
+                'service': 'business-intelligence',
+                'timestamp': datetime.utcnow().isoformat(),
+                'trace_id': trace_id or str(uuid.uuid4()),
+                'operation': 'business_intelligence_processing',
+                'data': data,
+                'dashboards_created': len(self.dashboards),
+                'widgets_active': len(self.widgets),
+                'insights_generated': self.latest_insights,
+                'patterns_discovered': self.latest_patterns
+            }
+            
+            # Store trace in KSE for intelligence layer enrichment
+            await self.kse_client.store_trace(trace_data)
+            
+            # Store business insights as entities for future intelligence retrieval
+            if 'insights' in data:
+                for insight in data['insights']:
+                    entity_data = {
+                        'type': 'business_insight',
+                        'domain': data.get('domain', 'business'),
+                        'content': insight,
+                        'confidence': insight.get('confidence', 0.7) if isinstance(insight, dict) else 0.7,
+                        'source': 'business_intelligence',
+                        'metadata': {
+                            'dashboard_context': data.get('dashboard_id', 'unknown'),
+                            'metric_type': data.get('metric_type', 'general'),
+                            'discovery_time': datetime.utcnow().isoformat(),
+                            'trace_id': trace_data['trace_id']
+                        }
+                    }
+                    await self.kse_client.store_entity(entity_data)
+            
+            # Store dashboard analytics for future business intelligence
+            if 'dashboard_analytics' in data:
+                for analytics in data['dashboard_analytics']:
+                    entity_data = {
+                        'type': 'dashboard_analytics',
+                        'domain': data.get('domain', 'business'),
+                        'content': analytics,
+                        'confidence': analytics.get('confidence', 0.8) if isinstance(analytics, dict) else 0.8,
+                        'source': 'business_intelligence',
+                        'metadata': {
+                            'dashboard_type': analytics.get('type', 'operational') if isinstance(analytics, dict) else 'operational',
+                            'performance_metrics': analytics.get('metrics', {}) if isinstance(analytics, dict) else {},
+                            'trace_id': trace_data['trace_id']
+                        }
+                    }
+                    await self.kse_client.store_entity(entity_data)
+            
+            logger.info(f"Successfully enriched business intelligence layer with trace {trace_data['trace_id']}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to enrich business intelligence layer: {e}")
+            return False
+    
     async def get_dashboard_data(self, dashboard_id: str) -> Dict[str, Any]:
-        """Get complete dashboard data with all widgets"""
+        """Get complete dashboard data with all widgets enhanced by KSE intelligence"""
         try:
             if dashboard_id not in self.dashboards:
                 raise ValueError(f"Dashboard {dashboard_id} not found")
             
             dashboard = self.dashboards[dashboard_id]
+            
+            # Retrieve business intelligence from KSE for dashboard enhancement
+            business_intelligence = await self.retrieve_business_intelligence(
+                query=f"dashboard {dashboard.name} {dashboard.dashboard_type} business metrics",
+                domain="business"
+            )
+            
             dashboard_data = {
                 "dashboard": dashboard.dict(),
                 "widgets": {},
-                "last_updated": datetime.utcnow().isoformat()
+                "last_updated": datetime.utcnow().isoformat(),
+                "kse_intelligence": {
+                    "insights": business_intelligence.get('insights', []),
+                    "patterns": business_intelligence.get('patterns', []),
+                    "recommendations": business_intelligence.get('recommendations', [])
+                }
             }
             
-            # Get data for each widget
+            # Get data for each widget with KSE enhancement
             widget_ids = [w['widget_id'] for w in dashboard.layout_config.get('widgets', [])]
             
             for widget_id in widget_ids:
                 if widget_id in self.widgets:
                     widget = self.widgets[widget_id]
                     widget_data = await self._get_widget_data(widget)
-                    dashboard_data['widgets'][widget_id] = {
+                    
+                    # Enhance widget data with KSE intelligence
+                    enhanced_widget_data = {
                         'config': {
                             'id': widget.id,
                             'title': widget.title,
@@ -201,8 +329,38 @@ class BusinessIntelligenceEngine:
                             'position': widget.position,
                             'visualization': widget.visualization_config
                         },
-                        'data': widget_data
+                        'data': widget_data,
+                        'kse_insights': business_intelligence.get('insights', [])[:3],  # Top 3 insights per widget
+                        'confidence': business_intelligence.get('confidence_scores', [0.8])[0] if business_intelligence.get('confidence_scores') else 0.8
                     }
+                    
+                    dashboard_data['widgets'][widget_id] = enhanced_widget_data
+            
+            # Update latest insights and patterns for enrichment
+            self.latest_insights = business_intelligence.get('insights', [])
+            self.latest_patterns = business_intelligence.get('patterns', [])
+            
+            # Enrich intelligence layer with dashboard analytics
+            enrichment_data = {
+                'domain': 'business',
+                'dashboard_id': dashboard_id,
+                'dashboard_analytics': [{
+                    'type': dashboard.dashboard_type,
+                    'metrics': list(dashboard_data['widgets'].keys()),
+                    'confidence': 0.85,
+                    'performance': {
+                        'widgets_count': len(dashboard_data['widgets']),
+                        'intelligence_enhanced': True,
+                        'kse_insights_count': len(business_intelligence.get('insights', []))
+                    }
+                }],
+                'insights': self.latest_insights
+            }
+            
+            await self.enrich_business_intelligence_layer(
+                enrichment_data,
+                trace_id=f"dashboard_{dashboard_id}"
+            )
             
             return dashboard_data
             

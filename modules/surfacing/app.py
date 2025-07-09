@@ -21,6 +21,20 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from shared.models.base import APIResponse, HealthCheck
 from shared.utils.logging import setup_logging
 
+# Import KSE SDK for universal intelligence substrate
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult, ConceptualSpace, KSEConfig
+from shared.kse_sdk.core.models import SearchType
+
+# Import Phase 2 Advanced Intelligence Flow
+from shared.kse_sdk.intelligence.orchestrator import (
+    IntelligenceOrchestrator,
+    IntelligenceEvent,
+    IntelligenceEventType,
+    IntelligencePriority
+)
+from shared.kse_sdk.intelligence.flow_manager import AdvancedIntelligenceFlowManager
+
 # Import causal models and utilities
 from shared.models.causal_marketing import (
     CausalMarketingData, CausalExperiment, CausalInsight,
@@ -43,6 +57,12 @@ MEMORY_SERVICE_URL = os.getenv("MEMORY_SERVICE_URL", "http://memory:8003")
 
 # Setup logging
 logger = setup_logging(MODULE_NAME)
+
+# Initialize KSE client for universal intelligence substrate
+kse_client = LiftKSEClient()
+
+# Initialize KSE integration for surfacing intelligence
+surfacing_kse = None
 
 # Initialize causal transformer
 causal_transformer = None
@@ -71,6 +91,357 @@ http_client = httpx.AsyncClient(timeout=60.0)
 # Memory service client
 memory_service_url = MEMORY_SERVICE_URL
 
+
+# Startup event to initialize KSE integration
+@app.on_event("startup")
+async def startup_event():
+    """Initialize KSE integration on startup"""
+    global surfacing_kse
+    try:
+        surfacing_kse = SurfacingKSEIntegration(kse_client)
+        await surfacing_kse.initialize()
+        logger.info("Surfacing module KSE integration initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Surfacing KSE integration: {str(e)}")
+        # Continue startup even if KSE integration fails
+
+
+
+# KSE Integration for Surfacing Intelligence
+class SurfacingKSEIntegration:
+    """KSE integration for surfacing optimization and intelligence with Phase 2 Advanced Intelligence Flow"""
+    
+    def __init__(self, kse_client: LiftKSEClient):
+        self.kse_client = kse_client
+        self.logger = logger
+        
+        # Phase 2: Advanced Intelligence Flow Components
+        self.intelligence_orchestrator = None
+        self.flow_manager = None
+    
+    async def initialize(self):
+        """Initialize KSE client connection and Phase 2 advanced intelligence flow"""
+        try:
+            await self.kse_client.initialize()
+            
+            # Initialize Phase 2 Advanced Intelligence Flow
+            self.intelligence_orchestrator = IntelligenceOrchestrator(self.kse_client)
+            self.flow_manager = AdvancedIntelligenceFlowManager(self.kse_client)
+            
+            await self.intelligence_orchestrator.initialize()
+            await self.flow_manager.initialize()
+            
+            # Register for cross-service intelligence events
+            await self._setup_intelligence_flows()
+            
+            self.logger.info("Surfacing KSE integration with Phase 2 Advanced Intelligence Flow initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Surfacing KSE integration: {str(e)}")
+            raise
+    
+    async def _setup_intelligence_flows(self):
+        """Setup Phase 2 cross-service intelligence flows"""
+        try:
+            # Subscribe to intelligence events from other services
+            await self.intelligence_orchestrator.subscribe_to_event(
+                IntelligenceEventType.PATTERN_DISCOVERY,
+                self._handle_pattern_discovery
+            )
+            
+            await self.intelligence_orchestrator.subscribe_to_event(
+                IntelligenceEventType.INSIGHT_GENERATION,
+                self._handle_insight_generation
+            )
+            
+            # Register service capabilities for intelligent routing
+            await self.flow_manager.register_service_capabilities(
+                service_name="surfacing",
+                capabilities={
+                    "optimization_patterns": 0.9,
+                    "treatment_recommendations": 0.85,
+                    "campaign_analysis": 0.8,
+                    "performance_surfacing": 0.95
+                },
+                input_types=["campaign_data", "optimization_request", "performance_metrics"],
+                output_types=["optimization_patterns", "treatment_recommendations", "insights"]
+            )
+            
+            self.logger.info("Phase 2 intelligence flows setup completed for Surfacing service")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to setup intelligence flows: {str(e)}")
+    
+    async def _handle_pattern_discovery(self, event: IntelligenceEvent):
+        """Handle pattern discovery events from other services"""
+        try:
+            if event.data.get("service") != "surfacing":
+                # Process patterns from other services that might be relevant
+                pattern_type = event.data.get("pattern_type")
+                if pattern_type in ["optimization", "performance", "campaign"]:
+                    # Integrate external patterns into surfacing intelligence
+                    await self._integrate_external_pattern(event.data)
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to handle pattern discovery event: {str(e)}")
+    
+    async def _handle_insight_generation(self, event: IntelligenceEvent):
+        """Handle insight generation events from other services"""
+        try:
+            insight_type = event.data.get("insight_type")
+            if insight_type in ["causal", "predictive", "optimization"]:
+                # Use insights to enhance surfacing recommendations
+                await self._enhance_with_external_insights(event.data)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to handle insight generation event: {str(e)}")
+    
+    async def _integrate_external_pattern(self, pattern_data: Dict[str, Any]):
+        """Integrate patterns discovered by other services"""
+        try:
+            # Store cross-service pattern for future use
+            entity = Entity(
+                id=f"external_pattern_{uuid.uuid4()}",
+                type="cross_service_pattern",
+                content=pattern_data,
+                metadata={
+                    "source_service": pattern_data.get("service"),
+                    "pattern_type": pattern_data.get("pattern_type"),
+                    "confidence": pattern_data.get("confidence", 0.0),
+                    "integration_timestamp": datetime.utcnow().isoformat(),
+                    "entity_type": "cross_service_pattern"
+                }
+            )
+            
+            await self.kse_client.store_entity("global", entity)
+            self.logger.info(f"Integrated external pattern from {pattern_data.get('service')}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to integrate external pattern: {str(e)}")
+    
+    async def _enhance_with_external_insights(self, insight_data: Dict[str, Any]):
+        """Enhance surfacing with insights from other services"""
+        try:
+            # Publish enhanced surfacing insight
+            enhanced_event = IntelligenceEvent(
+                event_type=IntelligenceEventType.INSIGHT_GENERATION,
+                source_service="surfacing",
+                target_service="all",
+                priority=IntelligencePriority.MEDIUM,
+                data={
+                    "insight_type": "enhanced_surfacing",
+                    "original_insight": insight_data,
+                    "surfacing_enhancement": "Applied to optimization patterns",
+                    "confidence": min(insight_data.get("confidence", 0.0) * 0.9, 1.0),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            )
+            
+            await self.intelligence_orchestrator.publish_event(enhanced_event)
+            self.logger.info(f"Enhanced surfacing with {insight_data.get('insight_type')} insight")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enhance with external insights: {str(e)}")
+    
+    async def retrieve_optimization_context(self, campaign_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve historical optimization patterns from KSE with Phase 2 intelligence flow"""
+        try:
+            org_id = campaign_data.get('org_id', 'default')
+            campaign_type = campaign_data.get('campaign_type', 'general')
+            
+            # Phase 2: Use advanced intelligence flow for enhanced context retrieval
+            if self.flow_manager:
+                # Discover intelligence opportunities
+                opportunities = await self.flow_manager.discover_intelligence_opportunities(
+                    context={
+                        "service": "surfacing",
+                        "operation": "optimization_context_retrieval",
+                        "campaign_type": campaign_type,
+                        "org_id": org_id
+                    }
+                )
+                
+                # Apply intelligent flow optimization
+                flow_config = await self.flow_manager.optimize_flow(
+                    flow_type="real_time",
+                    source_service="surfacing",
+                    target_services=["causal", "llm", "agentic"],
+                    context=campaign_data
+                )
+            
+            # Search for optimization patterns
+            search_results = await self.kse_client.hybrid_search(
+                org_id=org_id,
+                query=f"optimization patterns {campaign_type}",
+                search_type="hybrid",
+                limit=10,
+                filters={
+                    "entity_type": "optimization_pattern",
+                    "campaign_type": campaign_type,
+                    "success_rate": {"$gte": 0.7}
+                }
+            )
+            
+            # Process optimization context
+            optimization_context = {
+                "historical_patterns": [],
+                "successful_strategies": [],
+                "performance_benchmarks": {},
+                "recommended_approaches": [],
+                "cross_service_insights": []  # Phase 2 enhancement
+            }
+            
+            for result in search_results:
+                if result.metadata.get("entity_type") == "optimization_pattern":
+                    optimization_context["historical_patterns"].append({
+                        "pattern_id": result.id,
+                        "strategy": result.content.get("strategy"),
+                        "success_rate": result.metadata.get("success_rate"),
+                        "performance_lift": result.content.get("performance_lift"),
+                        "confidence_score": result.score
+                    })
+            
+            # Phase 2: Publish pattern discovery event
+            if self.intelligence_orchestrator and len(search_results) > 0:
+                pattern_event = IntelligenceEvent(
+                    event_type=IntelligenceEventType.PATTERN_DISCOVERY,
+                    source_service="surfacing",
+                    target_service="all",
+                    priority=IntelligencePriority.MEDIUM,
+                    data={
+                        "pattern_type": "optimization_patterns",
+                        "campaign_type": campaign_type,
+                        "pattern_count": len(search_results),
+                        "confidence": sum(r.score for r in search_results) / len(search_results),
+                        "context": campaign_data,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                )
+                await self.intelligence_orchestrator.publish_event(pattern_event)
+            
+            self.logger.info(f"Retrieved {len(search_results)} optimization patterns for {campaign_type} with Phase 2 intelligence flow")
+            return optimization_context
+            
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve optimization context: {str(e)}")
+            return {"error": str(e)}
+    
+    async def enrich_treatment_recommendations(self, recommendations: List[Dict], org_id: str) -> None:
+        """Enrich KSE with treatment recommendation outcomes using Phase 2 intelligence flow"""
+        try:
+            for rec in recommendations:
+                entity = Entity(
+                    id=f"treatment_rec_{rec.get('id', uuid.uuid4())}",
+                    type="treatment_recommendation",
+                    content=rec,
+                    metadata={
+                        "org_id": org_id,
+                        "confidence_score": rec.get('confidence', 0.0),
+                        "treatment_type": rec.get('type', 'unknown'),
+                        "expected_lift": rec.get('expected_lift', 0.0),
+                        "recommendation_timestamp": datetime.utcnow().isoformat(),
+                        "entity_type": "treatment_recommendation"
+                    }
+                )
+                
+                await self.kse_client.store_entity(org_id, entity)
+            
+            # Phase 2: Publish insight generation event for treatment recommendations
+            if self.intelligence_orchestrator and recommendations:
+                avg_confidence = sum(r.get('confidence', 0.0) for r in recommendations) / len(recommendations)
+                avg_expected_lift = sum(r.get('expected_lift', 0.0) for r in recommendations) / len(recommendations)
+                
+                insight_event = IntelligenceEvent(
+                    event_type=IntelligenceEventType.INSIGHT_GENERATION,
+                    source_service="surfacing",
+                    target_service="all",
+                    priority=IntelligencePriority.HIGH if avg_confidence > 0.8 else IntelligencePriority.MEDIUM,
+                    data={
+                        "insight_type": "treatment_recommendations",
+                        "recommendation_count": len(recommendations),
+                        "avg_confidence": avg_confidence,
+                        "avg_expected_lift": avg_expected_lift,
+                        "org_id": org_id,
+                        "treatment_types": list(set(r.get('type', 'unknown') for r in recommendations)),
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                )
+                await self.intelligence_orchestrator.publish_event(insight_event)
+            
+            # Phase 2: Trigger cross-service learning
+            if self.flow_manager and recommendations:
+                await self.flow_manager.trigger_real_time_learning(
+                    learning_context={
+                        "service": "surfacing",
+                        "operation": "treatment_recommendations",
+                        "data_points": len(recommendations),
+                        "confidence_threshold": avg_confidence,
+                        "org_id": org_id
+                    }
+                )
+            
+            self.logger.info(f"Enriched KSE with {len(recommendations)} treatment recommendations using Phase 2 intelligence flow")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enrich treatment recommendations: {str(e)}")
+    
+    async def retrieve_causal_insights(self, experiment_id: str, org_id: str) -> Dict[str, Any]:
+        """Retrieve causal insights from other services via KSE"""
+        try:
+            search_results = await self.kse_client.hybrid_search(
+                org_id=org_id,
+                query=f"causal insights experiment {experiment_id}",
+                search_type="hybrid",
+                limit=5,
+                filters={
+                    "entity_type": "causal_insight",
+                    "experiment_id": experiment_id
+                }
+            )
+            
+            causal_insights = {
+                "treatment_effects": {},
+                "confounders": [],
+                "causal_relationships": [],
+                "statistical_significance": {}
+            }
+            
+            for result in search_results:
+                content = result.content
+                if content.get("treatment_effects"):
+                    causal_insights["treatment_effects"].update(content["treatment_effects"])
+                if content.get("confounders"):
+                    causal_insights["confounders"].extend(content["confounders"])
+                if content.get("causal_relationships"):
+                    causal_insights["causal_relationships"].extend(content["causal_relationships"])
+            
+            return causal_insights
+            
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve causal insights: {str(e)}")
+            return {}
+    
+    async def enrich_optimization_results(self, optimization_results: Dict[str, Any], org_id: str) -> None:
+        """Enrich KSE with optimization results and performance data"""
+        try:
+            entity = Entity(
+                id=f"optimization_result_{optimization_results.get('optimization_id', uuid.uuid4())}",
+                type="optimization_result",
+                content=optimization_results,
+                metadata={
+                    "org_id": org_id,
+                    "optimization_type": optimization_results.get("optimization_type", "general"),
+                    "performance_improvement": optimization_results.get("performance_improvement", 0.0),
+                    "confidence_level": optimization_results.get("confidence_level", 0.0),
+                    "optimization_timestamp": datetime.utcnow().isoformat(),
+                    "entity_type": "optimization_result"
+                }
+            )
+            
+            await self.kse_client.store_entity(org_id, entity)
+            self.logger.info(f"Enriched KSE with optimization results for org {org_id}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enrich optimization results: {str(e)}")
 
 
 # Causal Optimization Classes

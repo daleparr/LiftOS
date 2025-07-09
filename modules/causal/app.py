@@ -20,6 +20,21 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from shared.models.base import APIResponse, HealthCheck
+
+# Import KSE SDK for universal intelligence substrate
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult, ConceptualSpace, KSEConfig
+from shared.kse_sdk.core.models import SearchType
+from shared.kse_sdk.causal_models import CausalSearchQuery, CausalKnowledgeGraph
+
+# Import Phase 2 Advanced Intelligence Flow
+from shared.kse_sdk.intelligence.orchestrator import (
+    IntelligenceOrchestrator,
+    IntelligenceEvent,
+    IntelligenceEventType,
+    IntelligencePriority
+)
+from shared.kse_sdk.intelligence.flow_manager import AdvancedIntelligenceFlowManager
 from shared.models.causal_marketing import (
     CausalMarketingData, CausalExperiment, ConfounderVariable,
     ExternalFactor, CausalGraph, CausalInsight, AttributionModel,
@@ -53,6 +68,12 @@ BAYESIAN_ANALYSIS_SERVICE_URL = os.getenv("BAYESIAN_ANALYSIS_SERVICE_URL", "http
 # Setup logging
 logger = setup_logging(MODULE_NAME)
 
+# Initialize KSE client for universal intelligence substrate
+kse_client = LiftKSEClient()
+
+# Initialize KSE integration for causal intelligence
+causal_kse = None
+
 # FastAPI app
 app = FastAPI(
     title=f"Lift Module - {MODULE_NAME.title()}",
@@ -73,6 +94,339 @@ app.add_middleware(
 
 # HTTP client for service communication
 http_client = httpx.AsyncClient(timeout=120.0)  # Longer timeout for complex ML operations
+
+
+# Startup event to initialize KSE integration
+@app.on_event("startup")
+async def startup_event():
+    """Initialize KSE integration on startup"""
+    global causal_kse
+    try:
+        causal_kse = CausalKSEIntegration(kse_client)
+        await causal_kse.initialize()
+        logger.info("Causal module KSE integration initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Causal KSE integration: {str(e)}")
+        # Continue startup even if KSE integration fails
+
+
+# KSE Integration for Causal Intelligence
+class CausalKSEIntegration:
+    """KSE integration for causal analysis and intelligence with Phase 2 Advanced Intelligence Flow"""
+    
+    def __init__(self, kse_client: LiftKSEClient):
+        self.kse_client = kse_client
+        self.logger = logger
+        
+        # Phase 2: Advanced Intelligence Flow Components
+        self.intelligence_orchestrator = None
+        self.flow_manager = None
+    
+    async def initialize(self):
+        """Initialize KSE client connection and Phase 2 advanced intelligence flow"""
+        try:
+            await self.kse_client.initialize()
+            
+            # Initialize Phase 2 Advanced Intelligence Flow
+            self.intelligence_orchestrator = IntelligenceOrchestrator(self.kse_client)
+            self.flow_manager = AdvancedIntelligenceFlowManager(self.kse_client)
+            
+            await self.intelligence_orchestrator.initialize()
+            await self.flow_manager.initialize()
+            
+            # Register for cross-service intelligence events
+            await self._setup_intelligence_flows()
+            
+            self.logger.info("Causal KSE integration with Phase 2 Advanced Intelligence Flow initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Causal KSE integration: {str(e)}")
+            raise
+    
+    async def _setup_intelligence_flows(self):
+        """Setup Phase 2 cross-service intelligence flows for causal analysis"""
+        try:
+            # Subscribe to intelligence events from other services
+            await self.intelligence_orchestrator.subscribe_to_event(
+                IntelligenceEventType.PATTERN_DISCOVERY,
+                self._handle_pattern_discovery
+            )
+            
+            await self.intelligence_orchestrator.subscribe_to_event(
+                IntelligenceEventType.INSIGHT_GENERATION,
+                self._handle_insight_generation
+            )
+            
+            # Register service capabilities for intelligent routing
+            await self.flow_manager.register_service_capabilities(
+                service_name="causal",
+                capabilities={
+                    "causal_inference": 0.95,
+                    "attribution_modeling": 0.9,
+                    "treatment_effects": 0.85,
+                    "confounding_analysis": 0.8,
+                    "bayesian_analysis": 0.9
+                },
+                input_types=["experiment_data", "attribution_request", "causal_query"],
+                output_types=["causal_insights", "treatment_effects", "attribution_models"]
+            )
+            
+            self.logger.info("Phase 2 intelligence flows setup completed for Causal service")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to setup intelligence flows: {str(e)}")
+    
+    async def _handle_pattern_discovery(self, event: IntelligenceEvent):
+        """Handle pattern discovery events from other services"""
+        try:
+            if event.data.get("service") != "causal":
+                # Process patterns from other services for causal analysis
+                pattern_type = event.data.get("pattern_type")
+                if pattern_type in ["optimization", "performance", "behavioral"]:
+                    # Analyze patterns for potential causal relationships
+                    await self._analyze_for_causal_relationships(event.data)
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to handle pattern discovery event: {str(e)}")
+    
+    async def _handle_insight_generation(self, event: IntelligenceEvent):
+        """Handle insight generation events from other services"""
+        try:
+            insight_type = event.data.get("insight_type")
+            if insight_type in ["optimization", "treatment_recommendations", "predictions"]:
+                # Use insights to enhance causal models
+                await self._enhance_causal_models(event.data)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to handle insight generation event: {str(e)}")
+    
+    async def _analyze_for_causal_relationships(self, pattern_data: Dict[str, Any]):
+        """Analyze external patterns for potential causal relationships"""
+        try:
+            # Generate causal hypothesis from external patterns
+            causal_hypothesis = {
+                "potential_cause": pattern_data.get("pattern_type"),
+                "potential_effect": "performance_change",
+                "confidence": pattern_data.get("confidence", 0.0) * 0.7,  # Reduce confidence for external patterns
+                "source_service": pattern_data.get("service"),
+                "analysis_timestamp": datetime.utcnow().isoformat()
+            }
+            
+            # Publish causal hypothesis for validation
+            hypothesis_event = IntelligenceEvent(
+                event_type=IntelligenceEventType.INSIGHT_GENERATION,
+                source_service="causal",
+                target_service="all",
+                priority=IntelligencePriority.MEDIUM,
+                data={
+                    "insight_type": "causal_hypothesis",
+                    "hypothesis": causal_hypothesis,
+                    "requires_validation": True,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            )
+            
+            await self.intelligence_orchestrator.publish_event(hypothesis_event)
+            self.logger.info(f"Generated causal hypothesis from {pattern_data.get('service')} pattern")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze for causal relationships: {str(e)}")
+    
+    async def _enhance_causal_models(self, insight_data: Dict[str, Any]):
+        """Enhance causal models with insights from other services"""
+        try:
+            # Update causal model priors based on external insights
+            enhanced_model = {
+                "model_type": "enhanced_causal",
+                "base_insight": insight_data.get("insight_type"),
+                "enhancement_factor": insight_data.get("confidence", 0.0),
+                "source_service": insight_data.get("service"),
+                "enhancement_timestamp": datetime.utcnow().isoformat()
+            }
+            
+            # Store enhanced model
+            entity = Entity(
+                id=f"enhanced_causal_model_{uuid.uuid4()}",
+                type="enhanced_causal_model",
+                content=enhanced_model,
+                metadata={
+                    "source_insight": insight_data.get("insight_type"),
+                    "enhancement_confidence": insight_data.get("confidence", 0.0),
+                    "entity_type": "enhanced_causal_model"
+                }
+            )
+            
+            await self.kse_client.store_entity("global", entity)
+            self.logger.info(f"Enhanced causal model with {insight_data.get('insight_type')} insight")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enhance causal models: {str(e)}")
+    
+    async def retrieve_causal_priors(self, analysis_request: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve causal priors and historical patterns from KSE"""
+        try:
+            org_id = analysis_request.get('org_id', 'default')
+            campaign_type = analysis_request.get('campaign_type', 'general')
+            
+            # Search for causal patterns and priors
+            search_results = await self.kse_client.hybrid_search(
+                org_id=org_id,
+                query=f"causal patterns {campaign_type}",
+                search_type="hybrid",
+                limit=10,
+                filters={
+                    "entity_type": "causal_pattern",
+                    "campaign_type": campaign_type,
+                    "confidence_score": {"$gte": 0.7}
+                }
+            )
+            
+            # Process causal context
+            causal_context = {
+                "historical_patterns": [],
+                "causal_relationships": [],
+                "confounding_factors": [],
+                "treatment_effects": {}
+            }
+            
+            for result in search_results:
+                if result.metadata.get("entity_type") == "causal_pattern":
+                    causal_context["historical_patterns"].append({
+                        "pattern_id": result.id,
+                        "causal_relationship": result.content.get("causal_relationship"),
+                        "effect_size": result.content.get("effect_size"),
+                        "confidence_score": result.score,
+                        "statistical_significance": result.metadata.get("statistical_significance")
+                    })
+            
+            self.logger.info(f"Retrieved {len(search_results)} causal patterns for {campaign_type}")
+            return causal_context
+            
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve causal priors: {str(e)}")
+            return {"error": str(e)}
+    
+    async def enrich_causal_insights(self, insights: List[Dict], org_id: str) -> None:
+        """Enrich KSE with discovered causal relationships and insights using Phase 2 intelligence flow"""
+        try:
+            for insight in insights:
+                entity = Entity(
+                    id=f"causal_insight_{insight.get('id', uuid.uuid4())}",
+                    type="causal_insight",
+                    content=insight,
+                    metadata={
+                        "org_id": org_id,
+                        "causal_relationship": insight.get('causal_relationship', 'unknown'),
+                        "effect_size": insight.get('effect_size', 0.0),
+                        "confidence_score": insight.get('confidence_score', 0.0),
+                        "statistical_significance": insight.get('statistical_significance', 0.0),
+                        "insight_timestamp": datetime.utcnow().isoformat(),
+                        "entity_type": "causal_insight"
+                    }
+                )
+                
+                await self.kse_client.store_entity(org_id, entity)
+            
+            # Phase 2: Publish causal insights for cross-service intelligence
+            if self.intelligence_orchestrator and insights:
+                avg_effect_size = sum(i.get('effect_size', 0.0) for i in insights) / len(insights)
+                avg_confidence = sum(i.get('confidence_score', 0.0) for i in insights) / len(insights)
+                
+                causal_event = IntelligenceEvent(
+                    event_type=IntelligenceEventType.INSIGHT_GENERATION,
+                    source_service="causal",
+                    target_service="all",
+                    priority=IntelligencePriority.HIGH if avg_confidence > 0.8 else IntelligencePriority.MEDIUM,
+                    data={
+                        "insight_type": "causal_insights",
+                        "insight_count": len(insights),
+                        "avg_effect_size": avg_effect_size,
+                        "avg_confidence": avg_confidence,
+                        "causal_relationships": [i.get('causal_relationship') for i in insights],
+                        "org_id": org_id,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                )
+                await self.intelligence_orchestrator.publish_event(causal_event)
+            
+            # Phase 2: Trigger cross-service learning for causal patterns
+            if self.flow_manager and insights:
+                await self.flow_manager.trigger_real_time_learning(
+                    learning_context={
+                        "service": "causal",
+                        "operation": "causal_insights",
+                        "data_points": len(insights),
+                        "avg_effect_size": avg_effect_size,
+                        "confidence_threshold": avg_confidence,
+                        "org_id": org_id
+                    }
+                )
+            
+            self.logger.info(f"Enriched KSE with {len(insights)} causal insights using Phase 2 intelligence flow")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enrich causal insights: {str(e)}")
+    
+    async def retrieve_attribution_patterns(self, attribution_request: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve attribution patterns from other services via KSE"""
+        try:
+            org_id = attribution_request.get('org_id', 'default')
+            platforms = attribution_request.get('platforms', [])
+            
+            search_results = await self.kse_client.hybrid_search(
+                org_id=org_id,
+                query=f"attribution patterns {' '.join(platforms)}",
+                search_type="hybrid",
+                limit=8,
+                filters={
+                    "entity_type": "attribution_pattern",
+                    "platforms": {"$in": platforms}
+                }
+            )
+            
+            attribution_patterns = {
+                "channel_attribution": {},
+                "cross_channel_effects": [],
+                "attribution_models": [],
+                "performance_benchmarks": {}
+            }
+            
+            for result in search_results:
+                content = result.content
+                if content.get("channel_attribution"):
+                    attribution_patterns["channel_attribution"].update(content["channel_attribution"])
+                if content.get("cross_channel_effects"):
+                    attribution_patterns["cross_channel_effects"].extend(content["cross_channel_effects"])
+            
+            return attribution_patterns
+            
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve attribution patterns: {str(e)}")
+            return {}
+    
+    async def enrich_experiment_results(self, experiment_results: Dict[str, Any], org_id: str) -> None:
+        """Enrich KSE with causal experiment results and learnings"""
+        try:
+            entity = Entity(
+                id=f"causal_experiment_{experiment_results.get('experiment_id', uuid.uuid4())}",
+                type="causal_experiment_result",
+                content=experiment_results,
+                metadata={
+                    "org_id": org_id,
+                    "experiment_type": experiment_results.get("experiment_type", "general"),
+                    "treatment_effect": experiment_results.get("treatment_effect", 0.0),
+                    "statistical_significance": experiment_results.get("statistical_significance", 0.0),
+                    "confidence_level": experiment_results.get("confidence_level", 0.0),
+                    "experiment_timestamp": datetime.utcnow().isoformat(),
+                    "entity_type": "causal_experiment_result"
+                }
+            )
+            
+            await self.kse_client.store_entity(org_id, entity)
+            self.logger.info(f"Enriched KSE with causal experiment results for org {org_id}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enrich experiment results: {str(e)}")
+
 
 # Pydantic Models
 class AttributionRequest(BaseModel):

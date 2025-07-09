@@ -18,6 +18,11 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 # Production-ready imports
 from shared.health.health_checks import HealthChecker, check_database_connection, check_external_service
 from shared.security.security_manager import get_security_manager, SecurityMiddleware

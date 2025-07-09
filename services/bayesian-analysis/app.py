@@ -12,6 +12,11 @@ import os
 # Add project root to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -45,6 +50,22 @@ from models.analysis_models import (
 )
 
 # Initialize FastAPI app
+
+# KSE Client for intelligence integration
+kse_client = None
+
+async def initialize_kse_client():
+    """Initialize KSE client for intelligence integration"""
+    global kse_client
+    try:
+        kse_client = LiftKSEClient()
+        print("KSE Client initialized successfully")
+        return True
+    except Exception as e:
+        print(f"KSE Client initialization failed: {e}")
+        kse_client = None
+        return False
+
 app = FastAPI(
     title="LiftOS Bayesian Analysis Service",
     description="Bayesian prior analysis, conflict detection, and SBC validation",

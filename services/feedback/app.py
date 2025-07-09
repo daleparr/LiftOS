@@ -18,6 +18,11 @@ from collections import defaultdict, deque
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 
 from shared.models.base import APIResponse, HealthCheck
 from shared.models.decision import (
@@ -45,6 +50,22 @@ MEMORY_SERVICE_URL = os.getenv("MEMORY_SERVICE_URL", "http://localhost:8003")
 OBSERVABILITY_SERVICE_URL = os.getenv("OBSERVABILITY_SERVICE_URL", "http://localhost:8004")
 
 # FastAPI app
+
+# KSE Client for intelligence integration
+kse_client = None
+
+async def initialize_kse_client():
+    """Initialize KSE client for intelligence integration"""
+    global kse_client
+    try:
+        kse_client = LiftKSEClient()
+        print("KSE Client initialized successfully")
+        return True
+    except Exception as e:
+        print(f"KSE Client initialization failed: {e}")
+        kse_client = None
+        return False
+
 app = FastAPI(
     title="LiftOS Feedback Service",
     description="Continuous learning through outcome tracking and model improvement",

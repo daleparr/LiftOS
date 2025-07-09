@@ -1,5 +1,6 @@
 """
 KSE Memory SDK client wrapper for Lift OS Core
+Universal KSE-SDK Integration Layer
 """
 import asyncio
 from datetime import datetime
@@ -7,7 +8,7 @@ from typing import Dict, List, Any, Optional
 from shared.utils.config import get_config
 from shared.utils.logging import get_logger
 from shared.models.base import MemorySearchResult, MemoryInsights
-from .pinecone_client import PineconeKSEClient
+from .core import KSEMemory, Entity, SearchQuery, SearchResult, ConceptualSpace, KSEConfig
 from .causal_models import (
     CausalSearchQuery, CausalSearchResult, CausalInsights,
     CausalMemoryEntry, CausalKnowledgeGraph
@@ -15,34 +16,45 @@ from .causal_models import (
 
 
 class LiftKSEClient:
-    """Lift OS Core wrapper for KSE Memory SDK using Pinecone"""
+    """Lift OS Core wrapper for Universal KSE Memory SDK"""
     
     def __init__(self):
         self.config = get_config()
         self.logger = get_logger('kse_client', 'memory-service')
-        self.pinecone_client = PineconeKSEClient()
+        
+        # Initialize universal KSE Memory with configuration
+        kse_config = KSEConfig(
+            vector_store_type="memory",  # Use in-memory for testing
+            graph_store_type="memory",   # Use in-memory for testing
+            concept_store_type="memory", # Use in-memory for testing
+            embedding_model="mock",      # Use mock for testing
+            cache_enabled=True,
+            analytics_enabled=True,
+            security_enabled=True
+        )
+        
+        self.kse_memory = KSEMemory(config=kse_config)
         self.org_contexts: Dict[str, Any] = {}
         self._initialized = False
+        
         # Causal-aware extensions
         self.causal_enabled = True
         self.causal_graphs: Dict[str, CausalKnowledgeGraph] = {}
     
     async def initialize(self):
-        """Initialize KSE Memory SDK with Pinecone backend"""
+        """Initialize Universal KSE Memory SDK"""
         if self._initialized:
             return
         
         try:
-            # Initialize Pinecone client
-            success = await self.pinecone_client.initialize()
-            if not success:
-                raise Exception("Failed to initialize Pinecone KSE client")
+            # Initialize universal KSE Memory
+            await self.kse_memory.initialize()
             
             self._initialized = True
-            self.logger.info("KSE Memory SDK initialized successfully with Pinecone backend")
+            self.logger.info("Universal KSE Memory SDK initialized successfully")
             
         except Exception as e:
-            self.logger.error(f"Failed to initialize KSE Memory SDK: {str(e)}")
+            self.logger.error(f"Failed to initialize Universal KSE Memory SDK: {str(e)}")
             raise
     
     async def initialize_org_memory(self, org_id: str) -> str:
@@ -71,24 +83,39 @@ class LiftKSEClient:
         limit: int = 10, 
         filters: Dict = None
     ) -> List[MemorySearchResult]:
-        """Perform memory search using specified type"""
+        """Perform memory search using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
         await self.initialize_org_memory(org_id)
         
         try:
-            if search_type == "neural":
-                return await self.pinecone_client.neural_search(query, org_id, limit, filters)
-            elif search_type == "conceptual":
-                return await self.pinecone_client.conceptual_search(query, org_id, limit, filters)
-            elif search_type == "knowledge":
-                return await self.pinecone_client.knowledge_search(query, org_id, limit, filters)
-            elif search_type == "hybrid":
-                return await self.pinecone_client.hybrid_search(query, org_id, limit, filters)
-            else:
-                # Default to neural search
-                return await self.pinecone_client.neural_search(query, org_id, limit, filters)
+            # Create universal search query
+            search_query = SearchQuery(
+                query=query,
+                search_type=search_type,
+                limit=limit,
+                filters=filters or {},
+                organization_id=org_id
+            )
+            
+            # Perform search using universal KSE Memory
+            results = await self.kse_memory.search(search_query)
+            
+            # Convert to legacy format for backward compatibility
+            memory_results = []
+            for result in results:
+                memory_result = MemorySearchResult(
+                    id=result.id,
+                    content=result.content,
+                    score=result.score,
+                    metadata=result.metadata,
+                    memory_type=result.metadata.get("memory_type", "general"),
+                    timestamp=result.metadata.get("timestamp", datetime.utcnow())
+                )
+                memory_results.append(memory_result)
+            
+            return memory_results
                 
         except Exception as e:
             self.logger.error(f"Search failed for org {org_id}: {str(e)}")
@@ -101,22 +128,32 @@ class LiftKSEClient:
         memory_type: str = "general", 
         metadata: Dict = None
     ) -> str:
-        """Store memory content"""
+        """Store memory content using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
         await self.initialize_org_memory(org_id)
         
         try:
-            # Prepare metadata
-            full_metadata = {
+            # Create universal entity
+            entity_metadata = {
                 "memory_type": memory_type,
                 "source": "lift_os_core",
+                "organization_id": org_id,
+                "timestamp": datetime.utcnow().isoformat(),
                 **(metadata or {})
             }
             
-            # Store using Pinecone client
-            memory_id = await self.pinecone_client.store_memory(content, full_metadata, org_id)
+            entity = Entity(
+                id=f"memory_{org_id}_{datetime.utcnow().timestamp()}",
+                content=content,
+                entity_type="memory",
+                domain="general",
+                metadata=entity_metadata
+            )
+            
+            # Store using universal KSE Memory
+            memory_id = await self.kse_memory.store(entity)
             
             # Update context stats
             if f"org_{org_id}" in self.org_contexts:
@@ -130,23 +167,25 @@ class LiftKSEClient:
             raise
     
     async def get_memory_insights(self, org_id: str) -> MemoryInsights:
-        """Get memory analytics and insights"""
+        """Get memory analytics and insights using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
         await self.initialize_org_memory(org_id)
         
         try:
-            # Get insights from Pinecone client
-            insights_data = await self.pinecone_client.analyze_context(org_id)
+            # Get insights using universal analytics service
+            insights_data = await self.kse_memory.get_analytics(
+                filters={"organization_id": org_id}
+            )
             
             insights = MemoryInsights(
-                total_memories=insights_data.get("count", 0),
-                dominant_concepts=insights_data.get("concepts", []),
-                knowledge_density=insights_data.get("density", 0.0),
-                temporal_patterns=insights_data.get("temporal", {}),
-                semantic_clusters=insights_data.get("clusters", []),
-                memory_types=insights_data.get("memory_types", {})
+                total_memories=insights_data.get("total_entities", 0),
+                dominant_concepts=insights_data.get("dominant_concepts", []),
+                knowledge_density=insights_data.get("knowledge_density", 0.0),
+                temporal_patterns=insights_data.get("temporal_patterns", {}),
+                semantic_clusters=insights_data.get("semantic_clusters", []),
+                memory_types=insights_data.get("entity_types", {})
             )
             
             self.logger.info(f"Memory insights generated for org {org_id}")
@@ -157,21 +196,21 @@ class LiftKSEClient:
             raise
     
     async def health_check(self) -> Dict[str, Any]:
-        """Check KSE SDK health"""
+        """Check Universal KSE SDK health"""
         try:
             if not self._initialized:
                 return {"status": "not_initialized", "healthy": False}
             
-            # Check Pinecone client health
-            pinecone_health = await self.pinecone_client.health_check()
+            # Check universal KSE Memory health
+            health_status = await self.kse_memory.health_check()
             
             return {
-                "status": "healthy" if pinecone_health.get("healthy") else "unhealthy",
-                "healthy": pinecone_health.get("healthy", False),
+                "status": "healthy" if health_status.get("healthy") else "unhealthy",
+                "healthy": health_status.get("healthy", False),
                 "active_contexts": len([ctx for ctx in self.org_contexts.values() if ctx.get('active', False)]),
                 "total_contexts": len(self.org_contexts),
-                "backend": "pinecone",
-                "pinecone_status": pinecone_health
+                "backend": "universal_kse",
+                "kse_status": health_status
             }
             
         except Exception as e:
@@ -192,6 +231,12 @@ class LiftKSEClient:
     async def get_context_stats(self) -> Dict[str, Any]:
         """Get statistics about active contexts"""
         active_contexts = sum(1 for ctx in self.org_contexts.values() if ctx.get('active', False))
+        
+        return {
+            "total_contexts": len(self.org_contexts),
+            "active_contexts": active_contexts,
+            "backend": "universal_kse"
+        }
     
     async def causal_search(
         self, 
@@ -202,29 +247,51 @@ class LiftKSEClient:
         minimum_strength: float = 0.5,
         limit: int = 10
     ) -> List[CausalSearchResult]:
-        """Perform causal-aware search"""
+        """Perform causal-aware search using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
         await self.initialize_org_memory(org_id)
         
         try:
-            # Create causal search query
-            causal_query = CausalSearchQuery(
+            # Create enhanced search query with causal filters
+            enhanced_filters = {
+                "organization_id": org_id,
+                "causal_enabled": True,
+                "minimum_strength": minimum_strength,
+                **(causal_filters or {})
+            }
+            
+            if relationship_types:
+                enhanced_filters["relationship_types"] = relationship_types
+            
+            search_query = SearchQuery(
                 query=query,
-                organization_id=org_id,
                 search_type="causal_hybrid",
-                causal_filters=causal_filters,
-                relationship_types=relationship_types,
-                minimum_strength=minimum_strength,
-                limit=limit
+                limit=limit,
+                filters=enhanced_filters,
+                organization_id=org_id
             )
             
-            # Perform causal search using Pinecone client
-            results = await self.pinecone_client.causal_search(causal_query)
+            # Perform causal search using universal KSE Memory
+            results = await self.kse_memory.search(search_query)
             
-            self.logger.info(f"Causal search completed for org {org_id}: {len(results)} results")
-            return results
+            # Convert to causal search results
+            causal_results = []
+            for result in results:
+                causal_result = CausalSearchResult(
+                    id=result.id,
+                    content=result.content,
+                    score=result.score,
+                    causal_relationships=result.metadata.get("causal_relationships", []),
+                    temporal_context=result.metadata.get("temporal_context", {}),
+                    causal_strength=result.metadata.get("causal_strength", 0.0),
+                    metadata=result.metadata
+                )
+                causal_results.append(causal_result)
+            
+            self.logger.info(f"Causal search completed for org {org_id}: {len(causal_results)} results")
+            return causal_results
             
         except Exception as e:
             self.logger.error(f"Causal search failed for org {org_id}: {str(e)}")
@@ -235,30 +302,36 @@ class LiftKSEClient:
         org_id: str,
         causal_entry: CausalMemoryEntry
     ) -> str:
-        """Store causal memory with relationship embeddings"""
+        """Store causal memory using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
         await self.initialize_org_memory(org_id)
         
         try:
-            # Prepare causal metadata
+            # Create universal entity with causal metadata
             causal_metadata = {
                 "memory_type": "causal",
                 "source": "lift_os_causal",
+                "organization_id": org_id,
                 "causal_relationships": [rel.dict() for rel in causal_entry.causal_relationships],
                 "temporal_context": causal_entry.temporal_context,
                 "causal_metadata": causal_entry.causal_metadata,
                 "platform_context": causal_entry.platform_context,
-                "experiment_id": causal_entry.experiment_id
+                "experiment_id": causal_entry.experiment_id,
+                "timestamp": datetime.utcnow().isoformat()
             }
             
-            # Store using Pinecone client
-            memory_id = await self.pinecone_client.store_causal_memory(
+            entity = Entity(
+                id=f"causal_{org_id}_{datetime.utcnow().timestamp()}",
                 content=causal_entry.content,
-                metadata=causal_metadata,
-                org_id=org_id
+                entity_type="causal_memory",
+                domain="causal",
+                metadata=causal_metadata
             )
+            
+            # Store using universal KSE Memory
+            memory_id = await self.kse_memory.store(entity)
             
             # Update context stats
             if f"org_{org_id}" in self.org_contexts:
@@ -272,23 +345,28 @@ class LiftKSEClient:
             raise
     
     async def get_causal_insights(self, org_id: str) -> CausalInsights:
-        """Get causal insights and analytics"""
+        """Get causal insights using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
         await self.initialize_org_memory(org_id)
         
         try:
-            # Get causal insights from Pinecone client
-            insights_data = await self.pinecone_client.analyze_causal_context(org_id)
+            # Get causal insights using universal analytics service
+            insights_data = await self.kse_memory.get_analytics(
+                filters={
+                    "organization_id": org_id,
+                    "entity_type": "causal_memory"
+                }
+            )
             
             insights = CausalInsights(
                 organization_id=org_id,
-                total_causal_memories=insights_data.get("total_causal_memories", 0),
-                dominant_causal_patterns=insights_data.get("patterns", []),
+                total_causal_memories=insights_data.get("total_entities", 0),
+                dominant_causal_patterns=insights_data.get("causal_patterns", []),
                 temporal_causal_trends=insights_data.get("temporal_trends", {}),
                 relationship_strength_distribution=insights_data.get("strength_distribution", {}),
-                causal_clusters=insights_data.get("clusters", []),
+                causal_clusters=insights_data.get("causal_clusters", []),
                 knowledge_graph_stats=insights_data.get("graph_stats", {}),
                 causal_anomalies=insights_data.get("anomalies", []),
                 generated_at=datetime.utcnow()
@@ -302,7 +380,7 @@ class LiftKSEClient:
             raise
     
     async def build_causal_knowledge_graph(self, org_id: str) -> CausalKnowledgeGraph:
-        """Build causal knowledge graph for organization"""
+        """Build causal knowledge graph using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
@@ -311,8 +389,10 @@ class LiftKSEClient:
             if org_id in self.causal_graphs:
                 return self.causal_graphs[org_id]
             
-            # Build graph using Pinecone client
-            graph_data = await self.pinecone_client.build_causal_knowledge_graph(org_id)
+            # Build graph using universal KSE Memory graph service
+            graph_data = await self.kse_memory.build_knowledge_graph(
+                filters={"organization_id": org_id, "causal_enabled": True}
+            )
             
             # Create knowledge graph object
             graph = CausalKnowledgeGraph(
@@ -343,36 +423,51 @@ class LiftKSEClient:
         lag_analysis: bool = True,
         limit: int = 10
     ) -> List[CausalSearchResult]:
-        """Perform temporal causal search with lag analysis"""
+        """Perform temporal causal search using universal KSE architecture"""
         if not self._initialized:
             await self.initialize()
         
         try:
             # Create temporal causal search query
-            causal_query = CausalSearchQuery(
+            temporal_filters = {
+                "organization_id": org_id,
+                "causal_enabled": True,
+                "temporal_range": time_range,
+                "lag_analysis": lag_analysis
+            }
+            
+            search_query = SearchQuery(
                 query=query,
-                organization_id=org_id,
                 search_type="causal_temporal",
-                temporal_range=time_range,
-                limit=limit
+                limit=limit,
+                filters=temporal_filters,
+                organization_id=org_id
             )
             
-            # Perform temporal search
-            results = await self.pinecone_client.temporal_causal_search(causal_query, lag_analysis)
+            # Perform temporal search using universal KSE Memory
+            results = await self.kse_memory.search(search_query)
             
-            self.logger.info(f"Temporal causal search completed for org {org_id}: {len(results)} results")
-            return results
+            # Convert to causal search results
+            causal_results = []
+            for result in results:
+                causal_result = CausalSearchResult(
+                    id=result.id,
+                    content=result.content,
+                    score=result.score,
+                    causal_relationships=result.metadata.get("causal_relationships", []),
+                    temporal_context=result.metadata.get("temporal_context", {}),
+                    causal_strength=result.metadata.get("causal_strength", 0.0),
+                    metadata=result.metadata
+                )
+                causal_results.append(causal_result)
+            
+            self.logger.info(f"Temporal causal search completed for org {org_id}: {len(causal_results)} results")
+            return causal_results
             
         except Exception as e:
             self.logger.error(f"Temporal causal search failed for org {org_id}: {str(e)}")
             raise
-        
-        return {
-            "total_contexts": len(self.org_contexts),
-            "active_contexts": active_contexts,
-            "backend": "pinecone"
-        }
 
 
-# Global KSE client instance
+# Global KSE client instance using universal architecture
 kse_client = LiftKSEClient()

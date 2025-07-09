@@ -343,3 +343,47 @@ class BayesianUpdateSession(BaseModel):
             "average_bayes_factor": avg_bayes_factor,
             "high_impact_updates": len([rec for rec in accepted if rec.data_evidence.bayes_factor > 10])
         }
+
+
+# Request/Response Models for Causal Module Integration
+class PriorElicitationRequest(BaseModel):
+    """Request for prior elicitation"""
+    org_id: str
+    client_id: str = Field(..., description="Client identifier")
+    parameters: List[str] = Field(..., description="Parameters to elicit priors for")
+    elicitation_method: ElicitationMethod = Field(..., description="Elicitation method to use")
+    domain_context: Dict[str, Any] = Field(default_factory=dict, description="Domain-specific context")
+    constraints: Dict[str, Any] = Field(default_factory=dict, description="Elicitation constraints")
+
+
+class PriorUpdateRequest(BaseModel):
+    """Request for updating priors based on data evidence"""
+    org_id: str
+    session_id: str = Field(..., description="Original elicitation session ID")
+    data_evidence: Dict[str, Any] = Field(..., description="Evidence from data")
+    update_strategy: str = Field(..., description="Update strategy to use")
+    parameters_to_update: List[str] = Field(default_factory=list, description="Specific parameters to update")
+
+
+class ConflictAnalysisRequest(BaseModel):
+    """Request for prior-data conflict analysis"""
+    org_id: str
+    priors: List[Dict[str, Any]] = Field(..., description="Prior specifications")
+    data_summary: Dict[str, Any] = Field(..., description="Data summary statistics")
+    analysis_options: Dict[str, Any] = Field(default_factory=dict, description="Analysis options")
+
+
+class SBCValidationRequest(BaseModel):
+    """Request for Simulation-Based Calibration validation"""
+    org_id: str
+    model_specification: Dict[str, Any] = Field(..., description="Model specification")
+    prior_specifications: List[Dict[str, Any]] = Field(..., description="Prior specifications")
+    validation_options: Dict[str, Any] = Field(default_factory=dict, description="Validation options")
+
+
+class BayesianSessionRequest(BaseModel):
+    """Request for Bayesian session management"""
+    org_id: str
+    session_type: str = Field(..., description="Type of session (elicitation, update, validation)")
+    session_config: Dict[str, Any] = Field(..., description="Session configuration")
+    client_context: Dict[str, Any] = Field(default_factory=dict, description="Client context")

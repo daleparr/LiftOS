@@ -30,8 +30,7 @@ from shared.models.causal_marketing import (
     CausalMarketingData, CausalExperiment, ConfounderVariable,
     ExternalFactor, CausalGraph, CausalInsight, AttributionModel,
     CausalAnalysisRequest, CausalAnalysisResponse,
-    CausalExperimentRequest, CausalExperimentResponse,
-    ConfounderAnalysisRequest, ConfounderAnalysisResponse
+    ExperimentDesignRequest, ExperimentDesignResponse
 )
 from shared.kse_sdk.client import kse_client
 from shared.utils.config import get_service_config

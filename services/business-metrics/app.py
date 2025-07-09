@@ -17,6 +17,11 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 from shared.models.business import (
     BusinessMetric, RevenueMetrics, CustomerMetrics, OperationalMetrics,
     ROIMetrics, BusinessKPI, BusinessGoal, BusinessImpactAssessment,

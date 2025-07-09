@@ -310,3 +310,133 @@ class DataQualityAssessment(BaseModel):
     missing_data_score: float = Field(ge=0.0, le=1.0)
     anomaly_detection_score: float = Field(ge=0.0, le=1.0)
     recommendations: List[str] = Field(default_factory=list)
+
+
+# Additional Request/Response Models for Surfacing Module
+class CausalOptimizationRequest(BaseModel):
+    """Request for causal optimization"""
+    org_id: str
+    campaign_type: str = Field(..., description="Type of campaign to optimize")
+    target_metrics: List[str] = Field(..., description="Target metrics to optimize")
+    time_window: Dict[str, Any] = Field(default_factory=dict, description="Time window for optimization")
+    constraints: Dict[str, Any] = Field(default_factory=dict, description="Optimization constraints")
+    options: Dict[str, Any] = Field(default_factory=dict, description="Additional options")
+
+
+class CausalOptimizationResponse(BaseModel):
+    """Response from causal optimization"""
+    optimization_id: str
+    recommendations: List[Dict[str, Any]]
+    expected_impact: Dict[str, float]
+    confidence_score: float
+    optimization_results: Dict[str, Any]
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class TreatmentRecommendationRequest(BaseModel):
+    """Request for treatment recommendations"""
+    org_id: str
+    campaign_id: str = Field(..., description="Campaign to recommend treatments for")
+    current_performance: Dict[str, float] = Field(..., description="Current performance metrics")
+    target_improvement: Dict[str, float] = Field(..., description="Target improvement goals")
+    available_treatments: List[str] = Field(default_factory=list, description="Available treatment options")
+    constraints: Dict[str, Any] = Field(default_factory=dict, description="Treatment constraints")
+
+
+class TreatmentRecommendationResponse(BaseModel):
+    """Response with treatment recommendations"""
+    recommendation_id: str
+    recommendations: List[Dict[str, Any]]
+    expected_outcomes: Dict[str, float]
+    confidence_intervals: Dict[str, List[float]]
+    risk_assessment: Dict[str, float]
+    implementation_plan: Dict[str, Any]
+
+
+class ExperimentDesignRequest(BaseModel):
+    """Request for experiment design"""
+    org_id: str
+    experiment_objective: str = Field(..., description="Objective of the experiment")
+    treatment_options: List[Dict[str, Any]] = Field(..., description="Available treatment options")
+    target_metrics: List[str] = Field(..., description="Metrics to measure")
+    constraints: Dict[str, Any] = Field(default_factory=dict, description="Design constraints")
+    statistical_requirements: Dict[str, Any] = Field(default_factory=dict, description="Statistical requirements")
+
+
+class ExperimentDesignResponse(BaseModel):
+    """Response with experiment design"""
+    design_id: str
+    experiment_design: Dict[str, Any]
+    power_analysis: Dict[str, float]
+    sample_size_requirements: Dict[str, int]
+    randomization_strategy: Dict[str, Any]
+    timeline: Dict[str, Any]
+    success_criteria: Dict[str, Any]
+
+
+# Additional Request/Response Models for Causal Module
+class TreatmentEffectRequest(BaseModel):
+    """Request for treatment effect analysis"""
+    org_id: str
+    treatment_variable: str = Field(..., description="Treatment variable to analyze")
+    outcome_variable: str = Field(..., description="Outcome variable to measure")
+    data_query: Dict[str, Any] = Field(..., description="Query for data selection")
+    causal_method: CausalMethod = Field(..., description="Causal inference method")
+    confounders: List[str] = Field(default_factory=list, description="Known confounders")
+    time_window: Dict[str, Any] = Field(default_factory=dict, description="Analysis time window")
+
+
+class TreatmentEffectResponse(BaseModel):
+    """Response with treatment effect analysis"""
+    analysis_id: str
+    treatment_effect: float
+    confidence_interval: List[float]
+    p_value: Optional[float]
+    effect_size_interpretation: str
+    causal_evidence_strength: float
+    methodology_details: Dict[str, Any]
+
+
+class CausalDiscoveryRequest(BaseModel):
+    """Request for causal discovery analysis"""
+    org_id: str
+    variables: List[str] = Field(..., description="Variables to include in discovery")
+    data_query: Dict[str, Any] = Field(..., description="Query for data selection")
+    discovery_method: str = Field(..., description="Causal discovery algorithm")
+    constraints: Dict[str, Any] = Field(default_factory=dict, description="Discovery constraints")
+    options: Dict[str, Any] = Field(default_factory=dict, description="Additional options")
+
+
+class CausalDiscoveryResponse(BaseModel):
+    """Response with discovered causal relationships"""
+    discovery_id: str
+    discovered_graph: CausalGraph
+    confidence_scores: Dict[str, float]
+    discovered_relationships: List[Dict[str, Any]]
+    validation_metrics: Dict[str, float]
+    recommendations: List[str]
+
+
+class AdvancedCausalAnalysisRequest(BaseModel):
+    """Request for advanced causal analysis"""
+    org_id: str
+    analysis_type: str = Field(..., description="Type of advanced analysis")
+    multiple_treatments: List[str] = Field(default_factory=list, description="Multiple treatment variables")
+    multiple_outcomes: List[str] = Field(default_factory=list, description="Multiple outcome variables")
+    mediators: List[str] = Field(default_factory=list, description="Mediating variables")
+    moderators: List[str] = Field(default_factory=list, description="Moderating variables")
+    data_query: Dict[str, Any] = Field(..., description="Query for data selection")
+    analysis_options: Dict[str, Any] = Field(default_factory=dict, description="Analysis options")
+
+
+class AdvancedCausalAnalysisResponse(BaseModel):
+    """Response with advanced causal analysis results"""
+    analysis_id: str
+    direct_effects: Dict[str, float]
+    indirect_effects: Dict[str, float]
+    total_effects: Dict[str, float]
+    mediation_analysis: Dict[str, Any]
+    moderation_analysis: Dict[str, Any]
+    heterogeneous_effects: Dict[str, Any]
+    robustness_checks: Dict[str, Any]
+    sensitivity_analysis: Dict[str, Any]

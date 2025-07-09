@@ -20,6 +20,11 @@ from pydantic import BaseModel, Field
 import sys
 sys.path.append('/app/shared')
 
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 from models.base import User, Organization, BillingPlan, UsageRecord, Invoice
 from auth.jwt_utils import verify_token, require_permissions
 from utils.logging import get_logger, log_request
@@ -31,6 +36,22 @@ config = get_config()
 
 # Initialize Stripe
 stripe.api_key = config.stripe_secret_key
+
+
+# KSE Client for intelligence integration
+kse_client = None
+
+async def initialize_kse_client():
+    """Initialize KSE client for intelligence integration"""
+    global kse_client
+    try:
+        kse_client = LiftKSEClient()
+        print("KSE Client initialized successfully")
+        return True
+    except Exception as e:
+        print(f"KSE Client initialization failed: {e}")
+        kse_client = None
+        return False
 
 app = FastAPI(
     title="Lift OS Billing Service",

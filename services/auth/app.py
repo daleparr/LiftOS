@@ -22,6 +22,11 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+# KSE-SDK Integration
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult
+from shared.kse_sdk.models import EntityType, Domain
+
 # Production-ready imports
 from shared.health.health_checks import HealthChecker, check_database_connection
 from shared.security.security_manager import get_security_manager, SecurityMiddleware
@@ -57,15 +62,26 @@ security_manager = get_security_manager()
 # Database manager
 db_manager = None
 
+# KSE Client for intelligence integration
+kse_client = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifespan with production-ready initialization"""
-    global db_manager
+    global db_manager, kse_client
     
     # Startup
     from shared.database import DatabaseManager
     db_manager = DatabaseManager()
     await db_manager.initialize()
+    
+    # Initialize KSE Client for intelligence integration
+    try:
+        kse_client = LiftKSEClient()
+        logger.info("KSE Client initialized successfully for auth service")
+    except Exception as e:
+        logger.warning(f"KSE Client initialization failed: {e}")
+        kse_client = None
     
     # Configure health checks
     health_checker.add_readiness_check(check_database_connection, "database")

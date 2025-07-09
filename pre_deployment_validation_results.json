@@ -1,0 +1,112 @@
+{
+  "total_tests": 8,
+  "passed_tests": 8,
+  "failed_tests": 0,
+  "success_rate": 100.0,
+  "deployment_ready": true,
+  "results": [
+    {
+      "test": "KSE-SDK Core Validation",
+      "success": true,
+      "duration": 1.3128151893615723,
+      "details": {
+        "exit_code": 0,
+        "tests_passed": "8/8",
+        "output_length": 2127
+      },
+      "error": null
+    },
+    {
+      "test": "Microservice Integration Validation",
+      "success": true,
+      "duration": 0.23791289329528809,
+      "details": {
+        "exit_code": 0,
+        "services_integrated": "16/16",
+        "kse_coverage": "100%"
+      },
+      "error": null
+    },
+    {
+      "test": "Phase 2 Intelligence Flow Validation",
+      "success": true,
+      "duration": 3.156797409057617,
+      "details": {
+        "exit_code": 0,
+        "intelligence_tests": "8/8",
+        "success_rate": "100%"
+      },
+      "error": null
+    },
+    {
+      "test": "Frontend Connectivity Validation",
+      "success": true,
+      "duration": 0.0866546630859375,
+      "details": {
+        "status_code": 200,
+        "response_size": 1837,
+        "streamlit_running": true,
+        "content_type": "text/html"
+      },
+      "error": null
+    },
+    {
+      "test": "Data Ingestion Service Validation",
+      "success": true,
+      "duration": 4.757858514785767,
+      "details": {
+        "status_code": 200,
+        "service_running": true,
+        "health_check": "passed",
+        "health_data": {
+          "status": "degraded",
+          "timestamp": "2025-07-09T14:21:49.207730",
+          "version": "1.0.0",
+          "dependencies": {
+            "memory_service": "unhealthy",
+            "active_sync_jobs": "0"
+          },
+          "uptime": 21637.438556432724
+        }
+      },
+      "error": null
+    },
+    {
+      "test": "Documentation Validation",
+      "success": true,
+      "duration": 0.013590574264526367,
+      "details": {
+        "total_docs": 5,
+        "existing_docs": 5,
+        "missing_docs": 0,
+        "missing_list": [],
+        "coverage_percent": 100.0
+      },
+      "error": null
+    },
+    {
+      "test": "Critical Files Validation",
+      "success": true,
+      "duration": 0.0013179779052734375,
+      "details": {
+        "total_files": 5,
+        "existing_files": 5,
+        "missing_files": 0,
+        "missing_list": []
+      },
+      "error": null
+    },
+    {
+      "test": "Git Repository Validation",
+      "success": true,
+      "duration": 0.20520639419555664,
+      "details": {
+        "current_branch": "master",
+        "modified_files_count": 45,
+        "has_uncommitted_changes": true,
+        "git_ready": false
+      },
+      "error": null
+    }
+  ]
+}

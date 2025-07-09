@@ -37,6 +37,20 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+# Import KSE SDK for universal intelligence substrate
+from shared.kse_sdk.client import LiftKSEClient
+from shared.kse_sdk.core import Entity, SearchQuery, SearchResult, ConceptualSpace, KSEConfig
+from shared.kse_sdk.core.models import SearchType
+
+# Import Phase 2 Advanced Intelligence Flow
+from shared.kse_sdk.intelligence.orchestrator import (
+    IntelligenceOrchestrator,
+    IntelligenceEvent,
+    IntelligenceEventType,
+    IntelligencePriority
+)
+from shared.kse_sdk.intelligence.flow_manager import AdvancedIntelligenceFlowManager
+
 from shared.models.causal_marketing import (
     CausalMarketingData, CausalExperiment, CausalInsight,
     AttributionModel, ConfounderVariable, ExternalFactor,
@@ -88,6 +102,12 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 # API Keys (should be in environment variables)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+
+# Initialize KSE client for universal intelligence substrate
+kse_client = LiftKSEClient()
+
+# Initialize KSE integration for LLM intelligence
+llm_kse = None
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 # Global clients
@@ -97,12 +117,303 @@ cohere_client = None
 sentence_model = None
 causal_transformer = None
 
+
+# KSE Integration for LLM Intelligence
+class LLMKSEIntegration:
+    """KSE integration for LLM capabilities and intelligence with Phase 2 Advanced Intelligence Flow"""
+    
+    def __init__(self, kse_client: LiftKSEClient):
+        self.kse_client = kse_client
+        self.logger = logger
+        
+        # Phase 2: Advanced Intelligence Flow Components
+        self.intelligence_orchestrator = None
+        self.flow_manager = None
+    
+    async def initialize(self):
+        """Initialize KSE client connection and Phase 2 advanced intelligence flow"""
+        try:
+            await self.kse_client.initialize()
+            
+            # Initialize Phase 2 Advanced Intelligence Flow
+            self.intelligence_orchestrator = IntelligenceOrchestrator(self.kse_client)
+            self.flow_manager = AdvancedIntelligenceFlowManager(self.kse_client)
+            
+            await self.intelligence_orchestrator.initialize()
+            await self.flow_manager.initialize()
+            
+            # Register for cross-service intelligence events
+            await self._setup_intelligence_flows()
+            
+            self.logger.info("LLM KSE integration with Phase 2 Advanced Intelligence Flow initialized successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize LLM KSE integration: {str(e)}")
+            raise
+    
+    async def _setup_intelligence_flows(self):
+        """Setup Phase 2 cross-service intelligence flows for LLM capabilities"""
+        try:
+            # Subscribe to intelligence events from other services
+            await self.intelligence_orchestrator.subscribe_to_event(
+                IntelligenceEventType.PATTERN_DISCOVERY,
+                self._handle_pattern_discovery
+            )
+            
+            await self.intelligence_orchestrator.subscribe_to_event(
+                IntelligenceEventType.INSIGHT_GENERATION,
+                self._handle_insight_generation
+            )
+            
+            # Register service capabilities for intelligent routing
+            await self.flow_manager.register_service_capabilities(
+                service_name="llm",
+                capabilities={
+                    "content_generation": 0.95,
+                    "text_analysis": 0.9,
+                    "language_understanding": 0.85,
+                    "prompt_optimization": 0.8,
+                    "semantic_analysis": 0.9
+                },
+                input_types=["text_content", "generation_request", "analysis_request"],
+                output_types=["generated_content", "text_insights", "semantic_analysis"]
+            )
+            
+            self.logger.info("Phase 2 intelligence flows setup completed for LLM service")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to setup intelligence flows: {str(e)}")
+    
+    async def _handle_pattern_discovery(self, event: IntelligenceEvent):
+        """Handle pattern discovery events from other services"""
+        try:
+            if event.data.get("service") != "llm":
+                # Process patterns from other services for content optimization
+                pattern_type = event.data.get("pattern_type")
+                if pattern_type in ["optimization", "causal", "behavioral"]:
+                    # Use patterns to enhance content generation
+                    await self._enhance_content_generation(event.data)
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to handle pattern discovery event: {str(e)}")
+    
+    async def _handle_insight_generation(self, event: IntelligenceEvent):
+        """Handle insight generation events from other services"""
+        try:
+            insight_type = event.data.get("insight_type")
+            if insight_type in ["causal_insights", "treatment_recommendations", "optimization_patterns"]:
+                # Use insights to improve content relevance and effectiveness
+                await self._improve_content_relevance(event.data)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to handle insight generation event: {str(e)}")
+    
+    async def _enhance_content_generation(self, pattern_data: Dict[str, Any]):
+        """Enhance content generation with patterns from other services"""
+        try:
+            # Create content enhancement strategy based on external patterns
+            enhancement_strategy = {
+                "pattern_source": pattern_data.get("service"),
+                "pattern_type": pattern_data.get("pattern_type"),
+                "enhancement_focus": "content_optimization",
+                "confidence": pattern_data.get("confidence", 0.0),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+            # Store enhancement strategy for future content generation
+            entity = Entity(
+                id=f"content_enhancement_{uuid.uuid4()}",
+                type="content_enhancement_strategy",
+                content=enhancement_strategy,
+                metadata={
+                    "source_service": pattern_data.get("service"),
+                    "pattern_type": pattern_data.get("pattern_type"),
+                    "entity_type": "content_enhancement_strategy"
+                }
+            )
+            
+            await self.kse_client.store_entity("global", entity)
+            self.logger.info(f"Enhanced content generation strategy from {pattern_data.get('service')} patterns")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enhance content generation: {str(e)}")
+    
+    async def _improve_content_relevance(self, insight_data: Dict[str, Any]):
+        """Improve content relevance using insights from other services"""
+        try:
+            # Generate content relevance improvement
+            relevance_improvement = {
+                "insight_source": insight_data.get("service"),
+                "insight_type": insight_data.get("insight_type"),
+                "improvement_focus": "content_relevance",
+                "confidence": insight_data.get("confidence", 0.0),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+            # Publish improved content strategy
+            improvement_event = IntelligenceEvent(
+                event_type=IntelligenceEventType.INSIGHT_GENERATION,
+                source_service="llm",
+                target_service="all",
+                priority=IntelligencePriority.MEDIUM,
+                data={
+                    "insight_type": "content_relevance_improvement",
+                    "improvement_strategy": relevance_improvement,
+                    "original_insight": insight_data.get("insight_type"),
+                    "confidence": min(insight_data.get("confidence", 0.0) * 0.9, 1.0),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            )
+            
+            await self.intelligence_orchestrator.publish_event(improvement_event)
+            self.logger.info(f"Improved content relevance with {insight_data.get('insight_type')} insight")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to improve content relevance: {str(e)}")
+    
+    async def retrieve_content_context(self, content_request: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve relevant content patterns and templates from KSE"""
+        try:
+            org_id = content_request.get('org_id', 'default')
+            content_type = content_request.get('content_type', 'general')
+            
+            # Search for content patterns and high-performing templates
+            search_results = await self.kse_client.hybrid_search(
+                org_id=org_id,
+                query=f"content patterns {content_type}",
+                search_type="conceptual",
+                limit=8,
+                filters={
+                    "entity_type": "content_template",
+                    "content_type": content_type,
+                    "performance_score": {"$gte": 0.8}
+                }
+            )
+            
+            # Process content context
+            content_context = {
+                "successful_templates": [],
+                "performance_patterns": [],
+                "style_guidelines": {},
+                "optimization_insights": []
+            }
+            
+            for result in search_results:
+                if result.metadata.get("entity_type") == "content_template":
+                    content_context["successful_templates"].append({
+                        "template_id": result.id,
+                        "template_content": result.content.get("template"),
+                        "performance_score": result.metadata.get("performance_score"),
+                        "engagement_metrics": result.content.get("engagement_metrics"),
+                        "confidence_score": result.score
+                    })
+            
+            self.logger.info(f"Retrieved {len(search_results)} content patterns for {content_type}")
+            return content_context
+            
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve content context: {str(e)}")
+            return {"error": str(e)}
+    
+    async def enrich_generated_content(self, content: Dict[str, Any], performance_metrics: Dict[str, Any], org_id: str) -> None:
+        """Enrich KSE with generated content and performance data"""
+        try:
+            entity = Entity(
+                id=f"generated_content_{content.get('id', uuid.uuid4())}",
+                type="generated_content",
+                content=content,
+                metadata={
+                    "org_id": org_id,
+                    "content_type": content.get('content_type', 'unknown'),
+                    "generation_model": content.get('model', 'unknown'),
+                    "performance_metrics": performance_metrics,
+                    "quality_score": performance_metrics.get('quality_score', 0.0),
+                    "engagement_score": performance_metrics.get('engagement_score', 0.0),
+                    "causal_insights": content.get('causal_insights', []),
+                    "generation_timestamp": datetime.utcnow().isoformat(),
+                    "entity_type": "generated_content"
+                }
+            )
+            
+            await self.kse_client.store_entity(org_id, entity)
+            self.logger.info(f"Enriched KSE with generated content for org {org_id}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enrich generated content: {str(e)}")
+    
+    async def retrieve_causal_context(self, org_id: str, content_type: str) -> Dict[str, Any]:
+        """Retrieve causal insights for content generation"""
+        try:
+            search_results = await self.kse_client.hybrid_search(
+                org_id=org_id,
+                query=f"causal insights {content_type}",
+                search_type="hybrid",
+                limit=5,
+                filters={
+                    "entity_type": "causal_insight",
+                    "content_type": content_type
+                }
+            )
+            
+            causal_context = {
+                "causal_relationships": [],
+                "performance_drivers": [],
+                "optimization_opportunities": []
+            }
+            
+            for result in search_results:
+                content = result.content
+                if content.get("causal_relationship"):
+                    causal_context["causal_relationships"].append(content["causal_relationship"])
+                if content.get("performance_drivers"):
+                    causal_context["performance_drivers"].extend(content["performance_drivers"])
+            
+            return causal_context
+            
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve causal context: {str(e)}")
+            return {}
+    
+    async def enrich_llm_insights(self, insights: List[Dict], org_id: str) -> None:
+        """Enrich KSE with LLM-generated insights and analysis"""
+        try:
+            for insight in insights:
+                entity = Entity(
+                    id=f"llm_insight_{insight.get('id', uuid.uuid4())}",
+                    type="llm_insight",
+                    content=insight,
+                    metadata={
+                        "org_id": org_id,
+                        "insight_type": insight.get('insight_type', 'general'),
+                        "confidence_score": insight.get('confidence_score', 0.0),
+                        "model_used": insight.get('model_used', 'unknown'),
+                        "insight_timestamp": datetime.utcnow().isoformat(),
+                        "entity_type": "llm_insight"
+                    }
+                )
+                
+                await self.kse_client.store_entity(org_id, entity)
+            
+            self.logger.info(f"Enriched KSE with {len(insights)} LLM insights")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enrich LLM insights: {str(e)}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan management"""
-    global redis_client, openai_client, cohere_client, sentence_model, causal_transformer
+    global redis_client, openai_client, cohere_client, sentence_model, causal_transformer, llm_kse
     
     logger.info("Starting LLM module...")
+    
+    # Initialize KSE integration
+    try:
+        llm_kse = LLMKSEIntegration(kse_client)
+        await llm_kse.initialize()
+        logger.info("LLM KSE integration initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize LLM KSE integration: {str(e)}")
+        # Continue startup even if KSE integration fails
     
     # Initialize Redis
     try:
