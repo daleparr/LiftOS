@@ -56,7 +56,7 @@ async def initialize_kse_client():
 app = FastAPI(
     title="Lift OS Billing Service",
     description="Billing and subscription management for Lift OS Core",
-    version="1.0.0"
+    version="1.1.0"
 )
 
 # CORS middleware

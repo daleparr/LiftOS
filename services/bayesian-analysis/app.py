@@ -69,7 +69,7 @@ async def initialize_kse_client():
 app = FastAPI(
     title="LiftOS Bayesian Analysis Service",
     description="Bayesian prior analysis, conflict detection, and SBC validation",
-    version="1.0.0",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )

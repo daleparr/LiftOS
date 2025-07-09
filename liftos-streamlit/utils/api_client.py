@@ -431,7 +431,7 @@ class APIClient:
     
     def optimize_budget(self, optimization_config: Dict[str, Any]) -> Dict[str, Any]:
         """Optimize budget allocation"""
-        url = f"{self.service_urls['causal']}/api/v1/optimization/budget"
+        url = f"{self.service_urls['channels']}/api/v1/optimize/budget"
         
         payload = {
             "user_id": st.session_state.get('user_id', 'demo_user'),
@@ -540,6 +540,144 @@ class APIClient:
             **analysis_config
         }
         
+    
+    # Channels Service Methods
+    def optimize_channels_budget(self, optimization_request: Dict[str, Any]) -> Dict[str, Any]:
+        """Optimize budget allocation across channels"""
+        url = f"{self.service_urls['channels']}/api/v1/optimize/budget"
+        
+        payload = {
+            "user_id": st.session_state.get('user_id', 'demo_user'),
+            **optimization_request
+        }
+        
+        # Add required headers for user context
+        headers = {
+            "x-user-id": st.session_state.get('user_id', 'demo_user'),
+            "x-org-id": st.session_state.get('org_id', 'demo_org'),
+            "x-memory-context": st.session_state.get('memory_context', 'demo_context'),
+            "Content-Type": "application/json"
+        }
+        
+        # Update session headers
+        original_headers = self.session.headers.copy()
+        self.session.headers.update(headers)
+        
+        try:
+            return self._make_request('POST', url, json=payload)
+        finally:
+            # Restore original headers
+            self.session.headers = original_headers
+    
+    def run_channels_simulation(self, simulation_request: Dict[str, Any]) -> Dict[str, Any]:
+        """Run what-if scenario simulation"""
+        url = f"{self.service_urls['channels']}/api/v1/simulate/scenarios"
+        
+        payload = {
+            "user_id": st.session_state.get('user_id', 'demo_user'),
+            **simulation_request
+        }
+        
+        # Add required headers for user context
+        headers = {
+            "x-user-id": st.session_state.get('user_id', 'demo_user'),
+            "x-org-id": st.session_state.get('org_id', 'demo_org'),
+            "x-memory-context": st.session_state.get('memory_context', 'demo_context'),
+            "Content-Type": "application/json"
+        }
+        
+        # Update session headers
+        original_headers = self.session.headers.copy()
+        self.session.headers.update(headers)
+        
+        try:
+            return self._make_request('POST', url, json=payload)
+        finally:
+            # Restore original headers
+            self.session.headers = original_headers
+    
+    def get_channels_recommendations(self, filters: Optional[Dict] = None) -> Dict[str, Any]:
+        """Get intelligent budget recommendations"""
+        org_id = st.session_state.get('org_id', 'demo_org')
+        url = f"{self.service_urls['channels']}/api/v1/recommendations/{org_id}"
+        
+        params = {
+            "user_id": st.session_state.get('user_id', 'demo_user')
+        }
+        if filters:
+            params.update(filters)
+        
+        # Add required headers for user context
+        headers = {
+            "x-user-id": st.session_state.get('user_id', 'demo_user'),
+            "x-org-id": st.session_state.get('org_id', 'demo_org'),
+            "x-memory-context": st.session_state.get('memory_context', 'demo_context')
+        }
+        
+        # Update session headers
+        original_headers = self.session.headers.copy()
+        self.session.headers.update(headers)
+        
+        try:
+            return self._make_request('GET', url, params=params)
+        finally:
+            # Restore original headers
+            self.session.headers = original_headers
+    
+    def get_channels_saturation_curves(self, channel_ids: List[str]) -> Dict[str, Any]:
+        """Get saturation curves for channels"""
+        # The service expects individual channel requests, so we'll get the first one
+        # In a real implementation, you might want to make multiple requests or modify the service
+        channel_id = channel_ids[0] if channel_ids else 'meta'
+        url = f"{self.service_urls['channels']}/api/v1/saturation/{channel_id}"
+        
+        params = {
+            "user_id": st.session_state.get('user_id', 'demo_user')
+        }
+        
+        # Add required headers for user context
+        headers = {
+            "x-user-id": st.session_state.get('user_id', 'demo_user'),
+            "x-org-id": st.session_state.get('org_id', 'demo_org'),
+            "x-memory-context": st.session_state.get('memory_context', 'demo_context')
+        }
+        
+        # Update session headers
+        original_headers = self.session.headers.copy()
+        self.session.headers.update(headers)
+        
+        try:
+            return self._make_request('GET', url, params=params)
+        finally:
+            # Restore original headers
+            self.session.headers = original_headers
+    
+    def get_channels_performance_metrics(self, date_range: Optional[Dict] = None) -> Dict[str, Any]:
+        """Get channel performance metrics"""
+        url = f"{self.service_urls['channels']}/api/v1/metrics/performance"
+        
+        params = {
+            "user_id": st.session_state.get('user_id', 'demo_user')
+        }
+        if date_range:
+            params.update(date_range)
+        
+        # Add required headers for user context
+        headers = {
+            "x-user-id": st.session_state.get('user_id', 'demo_user'),
+            "x-org-id": st.session_state.get('org_id', 'demo_org'),
+            "x-memory-context": st.session_state.get('memory_context', 'demo_context')
+        }
+        
+        # Update session headers
+        original_headers = self.session.headers.copy()
+        self.session.headers.update(headers)
+        
+        try:
+            return self._make_request('GET', url, params=params)
+        finally:
+            # Restore original headers
+            self.session.headers = original_headers
         return self._make_request('POST', url, json=payload)
     
     # Health Check Methods

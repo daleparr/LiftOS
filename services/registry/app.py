@@ -55,7 +55,7 @@ async def initialize_kse_client():
 app = FastAPI(
     title="Lift OS Core - Registry Service",
     description="Module Registration and Discovery Service",
-    version="1.0.0",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )

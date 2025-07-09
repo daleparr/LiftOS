@@ -10,10 +10,10 @@ from components.sidebar import render_sidebar
 from auth.authenticator import authenticate_user
 from auth.session_manager import initialize_session
 
-st.set_page_config(page_title="LLM Assistant", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="LLM", page_icon="🤖", layout="wide")
 
 def main():
-    """Main LLM assistant page"""
+    """Main LLM Assistant page"""
     
     # Initialize session and authenticate
     initialize_session()
@@ -24,7 +24,7 @@ def main():
     render_sidebar()
     
     # Main content
-    st.title("🤖 LLM Assistant")
+    st.title("🤖 LLM")
     st.markdown("### Your AI-Powered Marketing Intelligence Assistant")
     
     # Initialize API client

@@ -70,6 +70,11 @@ def render_navigation_menu():
         if st.button("🎯 Bayesian Analysis", use_container_width=True):
             st.switch_page("pages/16_Bayesian_Analysis.py")
     
+    # Channels Budget Optimizer
+    if feature_flags.get('enable_channels', True):
+        if st.button("📊 Channels Optimizer", use_container_width=True):
+            st.switch_page("pages/17_📊_Channels_Optimizer.py")
+    
     # Settings
     if st.button("⚙️ Settings", use_container_width=True):
         st.switch_page("pages/6_⚙️_Settings.py")
@@ -112,7 +117,8 @@ def render_service_status():
                         'surfacing': ('Insights Discovery', '🔍'),
                         'auth': ('Security Layer', '🔒'),
                         'observability': ('System Monitor', '📊'),
-                        'gateway': ('API Gateway', '🌐')
+                        'gateway': ('API Gateway', '🌐'),
+                        'channels': ('Budget Optimizer', '📊')
                     }
                     
                     if service_name in business_services:
@@ -154,7 +160,8 @@ def render_basic_service_status(service_status):
         'surfacing': ('Insights Discovery', '🔍'),
         'auth': ('Security Layer', '🔒'),
         'observability': ('System Monitor', '📊'),
-        'gateway': ('API Gateway', '🌐')
+        'gateway': ('API Gateway', '🌐'),
+        'channels': ('Budget Optimizer', '📊')
     }
     
     for service, is_healthy in service_status.items():
@@ -171,6 +178,7 @@ def render_default_service_status():
         ('📈 Analytics Engine', 'Ready'),
         ('🤖 AI Assistant', 'Ready'),
         ('🔍 Insights Discovery', 'Ready'),
+        ('📊 Budget Optimizer', 'Ready'),
         ('🔒 Security Layer', 'Active'),
         ('📊 System Monitor', 'Active'),
         ('🌐 API Gateway', 'Active')

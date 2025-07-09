@@ -504,7 +504,7 @@ async def initialize_kse_client():
 app = FastAPI(
     title="LiftOS User Analytics Service",
     description="Comprehensive user behavior tracking and analysis",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan
 )
 

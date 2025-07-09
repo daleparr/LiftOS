@@ -57,7 +57,7 @@ OBSERVABILITY_SERVICE_URL = os.getenv("OBSERVABILITY_SERVICE_URL", "http://local
 app = FastAPI(
     title="LiftOS Intelligence Service",
     description="Core intelligence orchestration with learning and decision capabilities",
-    version="1.0.0",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -637,7 +637,7 @@ async def health_check():
         status="healthy",
         timestamp=datetime.utcnow(),
         service="intelligence",
-        version="1.0.0",
+        version="1.1.0",
         details={
             "learning_models": len(intelligence_engine.learning_models),
             "pattern_detectors": len(intelligence_engine.pattern_detectors),

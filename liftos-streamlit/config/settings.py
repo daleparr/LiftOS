@@ -25,7 +25,8 @@ def get_service_urls() -> Dict[str, str]:
         'data_ingestion': os.getenv('DATA_INGESTION_SERVICE_URL', 'http://localhost:8006'),
         'surfacing': os.getenv('SURFACING_SERVICE_URL', 'http://localhost:8007'),
         'causal': os.getenv('CAUSAL_SERVICE_URL', 'http://localhost:8008'),
-        'llm': os.getenv('LLM_SERVICE_URL', 'http://localhost:8009')
+        'llm': os.getenv('LLM_SERVICE_URL', 'http://localhost:8009'),
+        'channels': os.getenv('CHANNELS_SERVICE_URL', 'http://localhost:8011')
     }
 
 def get_auth_config() -> Dict[str, Any]:
@@ -48,6 +49,7 @@ def get_feature_flags() -> Dict[str, bool]:
         'enable_observability': os.getenv('ENABLE_OBSERVABILITY', 'true').lower() == 'true',
         'enable_data_transformations': os.getenv('ENABLE_DATA_TRANSFORMATIONS', 'true').lower() == 'true',
         'enable_system_health': os.getenv('ENABLE_SYSTEM_HEALTH', 'true').lower() == 'true',
+        'enable_channels': os.getenv('ENABLE_CHANNELS', 'true').lower() == 'true',
         'enable_real_time_monitoring': os.getenv('ENABLE_REAL_TIME_MONITORING', 'true').lower() == 'true',
         'enable_bayesian': os.getenv('ENABLE_BAYESIAN', 'true').lower() == 'true'
     }

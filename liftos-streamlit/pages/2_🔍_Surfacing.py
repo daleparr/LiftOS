@@ -287,7 +287,7 @@ def main():
         st.error("Please log in to access surfacing analysis.")
         st.stop()
     
-    st.title("🔍 Surfacing Analysis")
+    st.title("🔍 SURFACING")
     st.markdown("Analyze search visibility, keyword performance, and competitive positioning.")
     
     # Create tabs for different analysis views

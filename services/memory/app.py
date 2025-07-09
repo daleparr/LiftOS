@@ -84,8 +84,8 @@ orchestrator.register_function("create_conceptual_space", memory_interface.creat
 # FastAPI app
 app = FastAPI(
     title="Lift OS Core - Memory Service",
-    description="KSE Memory SDK Integration Service",
-    version="1.0.0",
+    description="KSE Memory SDK Integration Service - Universal Memory Substrate",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )

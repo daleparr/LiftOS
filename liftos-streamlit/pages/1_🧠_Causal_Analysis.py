@@ -19,7 +19,7 @@ from auth.authenticator import authenticate_user
 from auth.session_manager import initialize_session
 from config.settings import get_feature_flags
 
-st.set_page_config(page_title="Causal Analysis", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="CAUSAL", page_icon="🧠", layout="wide")
 
 def main():
     """Main causal analysis page"""
@@ -33,7 +33,7 @@ def main():
     render_sidebar()
     
     # Main content
-    st.title("🧠 Causal Analysis")
+    st.title("🧠 CAUSAL")
     st.markdown("### Marketing Attribution & Causal Inference Platform")
     
     # Initialize API client

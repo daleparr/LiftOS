@@ -470,7 +470,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="LiftOS Business Metrics Service",
     description="Comprehensive business intelligence and KPI tracking",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan
 )
 

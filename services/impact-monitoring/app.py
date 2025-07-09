@@ -469,7 +469,7 @@ async def initialize_kse_client():
 app = FastAPI(
     title="LiftOS Impact Monitoring Service",
     description="Track decision outcomes and measure actual business impact",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan
 )
 

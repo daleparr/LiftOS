@@ -208,7 +208,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="LiftOS Surfacing Service",
     description="Product Analysis and Surfacing Capabilities with KSE Integration",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -229,7 +229,7 @@ async def health_check():
         service="surfacing",
         status="healthy",
         timestamp=datetime.utcnow(),
-        version="1.0.0"
+        version="1.1.0"
     )
 
 

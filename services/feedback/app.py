@@ -69,7 +69,7 @@ async def initialize_kse_client():
 app = FastAPI(
     title="LiftOS Feedback Service",
     description="Continuous learning through outcome tracking and model improvement",
-    version="1.0.0",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -341,7 +341,7 @@ async def health_check():
         status="healthy",
         timestamp=datetime.utcnow(),
         service="feedback",
-        version="1.0.0",
+        version="1.1.0",
         details={
             "tracked_outcomes": len(outcome_tracking),
             "learning_records": len(learning_feedback),
