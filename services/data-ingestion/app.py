@@ -32,6 +32,13 @@ from shared.utils.logging import setup_logging
 from shared.health.health_checks import HealthChecker
 from credential_manager import credential_manager
 
+# Import platform connection endpoints
+from platform_connection_endpoints import router as platform_connection_router
+from data_validation_endpoints import router as data_validation_router
+from live_data_integration_endpoints import router as live_integration_router
+from rollout_monitoring_endpoints import router as rollout_monitoring_router
+from analytics_optimization_endpoints import router as analytics_optimization_router
+
 # Import e-commerce connectors
 from connectors.shopify_connector import ShopifyConnector
 from connectors.woocommerce_connector import WooCommerceConnector
@@ -85,6 +92,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include platform connection router
+app.include_router(platform_connection_router)
+
+# Include data validation router
+app.include_router(data_validation_router)
+
+# Include live data integration router
+app.include_router(live_integration_router)
+
+# Include rollout and monitoring router
+app.include_router(rollout_monitoring_router)
+
+# Include analytics and optimization router
+app.include_router(analytics_optimization_router)
 
 
 # Request/Response Models

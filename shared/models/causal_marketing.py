@@ -44,6 +44,57 @@ class CausalMethod(str, Enum):
     RANDOMIZED_EXPERIMENT = "randomized_experiment"
 
 
+class CausalPermissionLevel(str, Enum):
+    """Permission levels for causal analysis access"""
+    READ = "read"
+    WRITE = "write"
+    EXPERIMENT = "experiment"
+    MODEL = "model"
+    OPTIMIZE = "optimize"
+    EXPORT = "export"
+    ADMIN = "admin"
+
+
+class CausalDataScope(str, Enum):
+    """Data scope for causal analysis"""
+    CAMPAIGN = "campaign"
+    ACCOUNT = "account"
+    ORGANIZATION = "organization"
+    GLOBAL = "global"
+
+
+class CausalAccessRequest(BaseModel):
+    """Request for causal analysis access validation"""
+    user_id: str
+    requested_scope: CausalDataScope
+    permission_level: CausalPermissionLevel
+    resource_id: Optional[str] = None
+
+
+class CausalAccessResponse(BaseModel):
+    """Response for causal analysis access validation"""
+    user_id: str
+    access_granted: bool
+    granted_scope: Optional[CausalDataScope] = None
+    granted_permissions: List[CausalPermissionLevel] = []
+    message: Optional[str] = None
+
+
+class CausalRoleRequest(BaseModel):
+    """Request to assign causal analyst role"""
+    user_id: str
+    role_type: str = "causal_analyst"
+    permissions: List[CausalPermissionLevel] = []
+
+
+class CausalRoleResponse(BaseModel):
+    """Response for causal role assignment"""
+    user_id: str
+    role_assigned: bool
+    permissions_granted: List[CausalPermissionLevel] = []
+    message: Optional[str] = None
+
+
 class ExternalFactor(BaseModel):
     """External factors that may confound causal relationships"""
     factor_name: str

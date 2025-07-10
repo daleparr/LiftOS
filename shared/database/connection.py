@@ -8,7 +8,8 @@ from typing import Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 import asyncpg
 import redis.asyncio as redis
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import MetaData
 import logging
@@ -47,7 +48,7 @@ class DatabaseManager:
                 max_overflow=20
             )
             
-            self.pg_session_factory = async_sessionmaker(
+            self.pg_session_factory = sessionmaker(
                 self.pg_engine,
                 class_=AsyncSession,
                 expire_on_commit=False

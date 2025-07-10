@@ -17,6 +17,12 @@ from .observability_models import (
     ServiceRegistry, MetricAggregation, SystemSnapshot
 )
 
+# Import security models to ensure they're registered
+from .security_models import (
+    EncryptedAPIKey, SecurityAuditLog, EnhancedUserSession,
+    APIKeyUsageAnalytics, SecurityConfiguration, RevokedToken
+)
+
 class User(Base):
     """User model for authentication and authorization"""
     __tablename__ = "users"
